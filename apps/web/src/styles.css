@@ -80,6 +80,7 @@ input[type='range'] { width: 100%; accent-color: var(--accent); }
 .info dt { color: var(--muted); }
 .info dd { margin: 0; }
 
+.search { width: 100%; font: inherit; color: var(--text); background: #1a2331; border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-top: 8px; }
 .references { list-style: none; margin: 0; padding: 0; }
 .references li { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .references a { color: #7cc4ff; font-weight: 600; }

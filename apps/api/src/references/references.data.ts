@@ -2,11 +2,19 @@ export interface OpenSourceReference {
   name: string;
   organization: string;
   url: string;
-  /** geometry : modélisation 3D · power : conversion d'énergie · systems : codes systèmes · economics : coûts */
-  category: 'geometry' | 'power' | 'systems' | 'economics';
+  category:
+    | 'geometry'
+    | 'power'
+    | 'systems'
+    | 'economics'
+    | 'equilibrium'
+    | 'plasma'
+    | 'diagnostics'
+    | 'materials'
+    | 'catalogs';
   description: string;
   /** Ce que l'application en reprend, ou la passerelle envisageable. */
-  relation: string;
+  relation?: string;
 }
 
 export const REFERENCES: OpenSourceReference[] = [
@@ -44,7 +52,7 @@ export const REFERENCES: OpenSourceReference[] = [
   },
   {
     name: 'fusion-open-source',
-    category: 'systems',
+    category: 'catalogs',
     organization: 'kripnerl',
     url: 'https://github.com/kripnerl/fusion-open-source',
     description: 'Liste organisée de bibliothèques open-source pour la fusion (PlasmaPy, OMAS, Cherab…).',
@@ -89,5 +97,236 @@ export const REFERENCES: OpenSourceReference[] = [
     url: 'https://github.com/1cFE',
     description: 'Outil Python de l\'initiative 1¢/kWh Fusion Energy : dimensionnement d\'un tokamak D-T, flux d\'énergie et coût actualisé de l\'électricité (LCOE).',
     relation: 'Suite possible : ajouter une estimation du coût de l\'électricité.',
+  },
+  {
+    name: 'OpenMC',
+    category: 'geometry',
+    organization: 'openmc-dev',
+    url: 'https://github.com/openmc-dev/openmc',
+    description: "Transport de neutrons et de photons par méthode de Monte-Carlo, devenu un standard de la recherche en fusion.",
+  },
+  {
+    name: 'neutronics-workshop',
+    category: 'geometry',
+    organization: 'fusion-energy',
+    url: 'https://github.com/fusion-energy/neutronics-workshop',
+    description: "Tutoriels et notebooks pour apprendre la simulation neutronique appliquée à la fusion.",
+  },
+  {
+    name: 'simsopt',
+    category: 'equilibrium',
+    organization: 'hiddenSymmetries',
+    url: 'https://github.com/hiddenSymmetries/simsopt',
+    description: "Suite Python/C++ d'optimisation de la géométrie et des bobines de stellarators.",
+  },
+  {
+    name: 'DESC',
+    category: 'equilibrium',
+    organization: 'PlasmaControl',
+    url: 'https://github.com/PlasmaControl/DESC',
+    description: "Solveur d'équilibre MHD 3D et optimisation de stellarators par différentiation automatique (JAX).",
+  },
+  {
+    name: 'FreeGS',
+    category: 'equilibrium',
+    organization: 'freegs-plasma',
+    url: 'https://github.com/freegs-plasma/freegs',
+    description: "Solveur Grad-Shafranov à frontière libre en Python pour l'équilibre des tokamaks.",
+  },
+  {
+    name: 'FreeGSNKE',
+    category: 'equilibrium',
+    organization: 'FusionComputingLab',
+    url: 'https://github.com/FusionComputingLab/freegsnke',
+    description: "Équilibres à frontière libre statiques et évolutifs, dans la lignée de FreeGS.",
+  },
+  {
+    name: 'VMEC2000',
+    category: 'equilibrium',
+    organization: 'hiddenSymmetries',
+    url: 'https://github.com/hiddenSymmetries/VMEC2000',
+    description: "Version modernisée du code d'équilibre magnétique 3D VMEC.",
+  },
+  {
+    name: 'VMEC++',
+    category: 'equilibrium',
+    organization: 'proximafusion',
+    url: 'https://github.com/proximafusion/vmecpp',
+    description: "Réimplémentation moderne en C++ du solveur VMEC.",
+  },
+  {
+    name: 'STELLOPT',
+    category: 'equilibrium',
+    organization: 'PrincetonUniversity',
+    url: 'https://github.com/PrincetonUniversity/STELLOPT',
+    description: "Suite historique d'optimisation de stellarators du PPPL.",
+  },
+  {
+    name: 'SPEC',
+    category: 'equilibrium',
+    organization: 'PrincetonUniversity',
+    url: 'https://github.com/PrincetonUniversity/SPEC',
+    description: "Équilibre MHD à pression étagée pour tokamaks et stellarators.",
+  },
+  {
+    name: 'PlasmaPy',
+    category: 'plasma',
+    organization: 'PlasmaPy',
+    url: 'https://github.com/PlasmaPy/PlasmaPy',
+    description: "Bibliothèque Python communautaire : formules, constantes et outils d'analyse en physique des plasmas.",
+  },
+  {
+    name: 'Smilei',
+    category: 'plasma',
+    organization: 'SmileiPIC',
+    url: 'https://github.com/SmileiPIC/Smilei',
+    description: "Code Particle-In-Cell massivement parallèle pour la simulation cinétique des plasmas.",
+  },
+  {
+    name: 'BOUT++',
+    category: 'plasma',
+    organization: 'boutproject',
+    url: 'https://github.com/boutproject/BOUT-dev',
+    description: "Framework C++ pour les instabilités et la turbulence au bord du plasma.",
+  },
+  {
+    name: 'FELTOR',
+    category: 'plasma',
+    organization: 'feltor-dev',
+    url: 'https://github.com/feltor-dev/feltor',
+    description: "Simulation gyro-fluide 3D de la turbulence dans les plasmas magnétisés.",
+  },
+  {
+    name: 'Gyselalib++',
+    category: 'plasma',
+    organization: 'gyselax',
+    url: 'https://github.com/gyselax/gyselalibxx',
+    description: "Bibliothèque C++ pour les simulations gyrocinétiques haute performance.",
+  },
+  {
+    name: 'GORILLA',
+    category: 'plasma',
+    organization: 'itpplasma',
+    url: 'https://github.com/itpplasma/GORILLA',
+    description: "Intégration d'orbites de centres-guides dans des champs magnétiques complexes.",
+  },
+  {
+    name: 'TORAX',
+    category: 'plasma',
+    organization: 'google-deepmind',
+    url: 'https://github.com/google-deepmind/torax',
+    description: "Simulateur de transport du plasma de cœur de tokamak, écrit en JAX.",
+  },
+  {
+    name: 'OMAS',
+    category: 'diagnostics',
+    organization: 'gafusion',
+    url: 'https://github.com/gafusion/omas',
+    description: "Modèle de données unifié compatible avec le standard IMAS d'ITER.",
+  },
+  {
+    name: 'ToFu',
+    category: 'diagnostics',
+    organization: 'ToFuProject',
+    url: 'https://github.com/ToFuProject/tofu',
+    description: "Tomographie et diagnostics synthétiques pour les machines de fusion.",
+  },
+  {
+    name: 'Cherab',
+    category: 'diagnostics',
+    organization: 'cherab',
+    url: 'https://github.com/cherab/core',
+    description: "Modélisation spectroscopique et lancer de rayons pour les diagnostics optiques.",
+  },
+  {
+    name: 'KSTAR tokamak simulator',
+    category: 'diagnostics',
+    organization: 'jaem-seo',
+    url: 'https://github.com/jaem-seo/KSTAR_tokamak_simulator',
+    description: "Simulateur de tokamak à réseaux de neurones, entraîné sur les données de KSTAR.",
+  },
+  {
+    name: 'ai4plasma',
+    category: 'diagnostics',
+    organization: 'mathboylinlin',
+    url: 'https://github.com/mathboylinlin/ai4plasma',
+    description: "Apprentissage automatique informé par la physique (PINNs) pour la simulation de plasmas.",
+  },
+  {
+    name: 'Aurora',
+    category: 'diagnostics',
+    organization: 'fsciortino',
+    url: 'https://github.com/fsciortino/Aurora',
+    description: "Transport des impuretés et rayonnement dans les plasmas de fusion.",
+  },
+  {
+    name: 'HEAT',
+    category: 'materials',
+    organization: 'plasmapotential',
+    url: 'https://github.com/plasmapotential/HEAT',
+    description: "Calcul des flux thermiques sur les composants face au plasma (divertor).",
+  },
+  {
+    name: 'RustBCA',
+    category: 'materials',
+    organization: 'lcpp-org',
+    url: 'https://github.com/lcpp-org/RustBCA',
+    description: "Interactions ions-matériaux en Rust : pulvérisation, implantation, réflexion.",
+  },
+  {
+    name: 'FESTIM',
+    category: 'materials',
+    organization: 'festim-dev',
+    url: 'https://github.com/festim-dev/FESTIM',
+    description: "Éléments finis pour le transport de l'hydrogène et du tritium dans les matériaux.",
+  },
+  {
+    name: 'awesome-nuclear',
+    category: 'catalogs',
+    organization: 'paulromano',
+    url: 'https://github.com/paulromano/awesome-nuclear',
+    description: "Liste de référence : neutronique, transport de particules, activation, thermohydraulique.",
+  },
+  {
+    name: 'awesome-ML-in-plasma-physics',
+    category: 'catalogs',
+    organization: 'kharitonov-ivan',
+    url: 'https://github.com/kharitonov-ivan/awesome-ML-in-plasma-physics',
+    description: "Répertoire sur l'IA, le contrôle des plasmas et la prédiction des disruptions.",
+  },
+  {
+    name: 'Topic GitHub nuclear-fusion',
+    category: 'catalogs',
+    organization: 'GitHub',
+    url: 'https://github.com/topics/nuclear-fusion',
+    description: "Index GitHub des dépôts publics sur la fusion nucléaire.",
+  },
+  {
+    name: 'Topic GitHub plasma-physics',
+    category: 'catalogs',
+    organization: 'GitHub',
+    url: 'https://github.com/topics/plasma-physics',
+    description: "Index GitHub des dépôts publics sur la physique des plasmas.",
+  },
+  {
+    name: 'UW Plasma',
+    category: 'catalogs',
+    organization: 'uwplasma',
+    url: 'https://github.com/uwplasma',
+    description: "Groupe de l'Université du Wisconsin-Madison : optimisation de stellarators, souvent en Python et JAX.",
+  },
+  {
+    name: 'ITP Plasma',
+    category: 'catalogs',
+    organization: 'itpplasma',
+    url: 'https://github.com/itpplasma',
+    description: "Institut de physique théorique de Graz : modélisation cinétique et magnétique.",
+  },
+  {
+    name: 'UKAEA',
+    category: 'catalogs',
+    organization: 'ukaea',
+    url: 'https://github.com/ukaea',
+    description: "Autorité britannique de l'énergie atomique : codes de conception de centrales et d'ingénierie des matériaux.",
   },
 ];

@@ -60,12 +60,21 @@ export interface ReactorPreset {
 }
 
 export interface OpenSourceReference {
-  category: 'geometry' | 'power' | 'systems' | 'economics';
+  category:
+    | 'geometry'
+    | 'power'
+    | 'systems'
+    | 'economics'
+    | 'equilibrium'
+    | 'plasma'
+    | 'diagnostics'
+    | 'materials'
+    | 'catalogs';
   name: string;
   organization: string;
   url: string;
   description: string;
-  relation: string;
+  relation?: string;
 }
 
 // Miroir de apps/api/src/power/power.types.ts — puissances en MW.

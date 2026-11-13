@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { PowerModule } from './power/power.module';
 import { ReactorModule } from './reactor/reactor.module';
 import { ReferencesModule } from './references/references.module';
+import { SimulationModule } from './simulation/simulation.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ReferencesModule } from './references/references.module';
     }),
     ReactorModule,
     PowerModule,
+    SimulationModule,
     ReferencesModule,
   ],
 })

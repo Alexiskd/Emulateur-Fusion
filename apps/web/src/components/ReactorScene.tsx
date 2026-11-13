@@ -1,7 +1,7 @@
 import { OrbitControls } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
-import type { ReactorModel } from '../types';
+import type { LiveState, ReactorModel } from '../types';
 import { ComponentMesh } from './ComponentMesh';
 
 const TAU = Math.PI * 2;
@@ -15,6 +15,8 @@ interface Props {
   explode: number;
   /** Secteur retiré pour la vue en coupe, en degrés. */
   cutDegrees: number;
+  /** État de la simulation en cours, s'il y en a une. */
+  live?: LiveState;
 }
 
 /** Recadre la caméra quand la taille de la machine change (ex. changement de preset). */
@@ -30,7 +32,7 @@ function CameraRig({ size }: { size: number }) {
   return null;
 }
 
-export function ReactorScene({ model, hidden, selectedId, onSelect, explode, cutDegrees }: Props) {
+export function ReactorScene({ model, hidden, selectedId, onSelect, explode, cutDegrees, live }: Props) {
   const { outerRadius, height } = model.summary;
   const size = Math.max(outerRadius, height / 2);
   const cut = (cutDegrees * Math.PI) / 180;
@@ -43,7 +45,7 @@ export function ReactorScene({ model, hidden, selectedId, onSelect, explode, cut
       <ambientLight intensity={0.7} />
       <directionalLight position={[size, size * 2, size * 1.5]} intensity={1.8} />
       <directionalLight position={[-size * 1.5, size * 0.5, -size]} intensity={0.6} />
-      <pointLight position={[0, 0, 0]} intensity={size * size * 4} color="#ff9be8" />
+      <pointLight position={[0, 0, 0]} intensity={size * size * 4 * (live ? live.fusion : 1)} color="#ff9be8" />
 
       {/* Rotation pour que le secteur retiré fasse face à la caméra. */}
       <group rotation={[0, cut / 2, 0]}>
@@ -58,6 +60,7 @@ export function ReactorScene({ model, hidden, selectedId, onSelect, explode, cut
               radialStep={explode * outerRadius * 0.7}
               selected={c.id === selectedId}
               onSelect={onSelect}
+              live={live}
             />
           ))}
       </group>

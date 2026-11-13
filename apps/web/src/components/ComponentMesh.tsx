@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { buildCoil, buildRevolve } from '../three/buildGeometry';
-import type { ReactorComponent } from '../types';
+import type { LiveState, ReactorComponent } from '../types';
 
 const TAU = Math.PI * 2;
 
@@ -14,10 +14,26 @@ interface Props {
   radialStep: number;
   selected: boolean;
   onSelect: (id: string) => void;
+  /** État de la simulation en cours : anime le plasma et les bobines. */
+  live?: LiveState;
 }
 
-export function ComponentMesh({ component, phiLength, verticalStep, radialStep, selected, onSelect }: Props) {
-  const { geometry, explode, color, opacity } = component;
+/** Intensité lumineuse d'une pièce selon l'état de la machine. */
+function liveGlow(component: ReactorComponent, live: LiveState): number {
+  if (component.group === 'plasma') return 0.15 + 1.6 * live.temperature;
+  if (component.id === 'central-solenoid') return 0.8 * Math.abs(live.solenoidCurrent);
+  if (component.id.startsWith('pf-coil')) return 0.6 * live.plasmaCurrent;
+  if (component.id === 'tf-coils') return 0.25;
+  if (component.group === 'in-vessel') return 0.5 * live.fusion;
+  return 0;
+}
+
+export function ComponentMesh({ component, phiLength, verticalStep, radialStep, selected, onSelect, live }: Props) {
+  const { geometry, explode, color } = component;
+  const isPlasma = component.group === 'plasma';
+  // Pendant la simulation, le plasma n'apparaît qu'avec le courant.
+  const opacity = live && isPlasma ? 0.03 + 0.6 * live.plasmaCurrent : component.opacity;
+  const glow = live ? liveGlow(component, live) + (selected ? 0.3 : 0) : isPlasma ? 0.9 : selected ? 0.45 : 0;
 
   const geometries = useMemo(
     () =>
@@ -29,12 +45,11 @@ export function ComponentMesh({ component, phiLength, verticalStep, radialStep, 
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries]);
 
   const transparent = opacity < 1;
-  const isPlasma = component.group === 'plasma';
   const material = (
     <meshStandardMaterial
       color={color}
       emissive={color}
-      emissiveIntensity={isPlasma ? 0.9 : selected ? 0.45 : 0}
+      emissiveIntensity={glow}
       roughness={0.6}
       metalness={0.15}
       side={THREE.DoubleSide}
@@ -45,7 +60,7 @@ export function ComponentMesh({ component, phiLength, verticalStep, radialStep, 
   );
 
   // Les enveloppes très transparentes (cryostat) ne doivent pas intercepter les clics.
-  const pickable = opacity >= 0.3;
+  const pickable = component.opacity >= 0.3;
   const handlers = pickable
     ? {
         onClick: (e: { stopPropagation: () => void }) => {

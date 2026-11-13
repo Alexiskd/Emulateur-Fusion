@@ -23,6 +23,7 @@ npm test         # tests du moteur de géométrie
 | GET | `/api/reactors/presets/:id` | Modèle complet d'une machine type |
 | POST | `/api/reactors/build` | Modèle complet à partir de paramètres libres |
 | POST | `/api/power-balance` | Bilan de puissance : fusion → chaleur → électricité nette |
+| POST | `/api/simulation` | Simulation d'une impulsion : séries temporelles et bilan du cycle |
 | GET | `/api/references` | Projets open-source de référence |
 
 Chaque composant est renvoyé sous forme de profil poloïdal `(r, z)` en mètres. Le front le met
@@ -43,6 +44,15 @@ déposent leur énergie, multipliée, dans la couverture ; alphas et chauffage f
 sur les parois. `électricité brute = rendement du cycle × puissance thermique`, puis on retire
 les auxiliaires (chauffage du plasma, pompage, cryogénie, aimants, divers) pour obtenir
 l'électricité nette. La charge neutronique sur la paroi relie ce bilan au modèle 3D.
+
+### Simulation de fonctionnement
+
+Modèle 0D d'une impulsion en six phases (pré-magnétisation, montée du courant, chauffage,
+plateau de combustion, descente, repos). L'énergie thermique du plasma suit
+`dW/dt = P_alpha + P_chauffage + P_ohmique − W/τ_E`, la puissance de fusion suit la réactivité
+D-T (ajustement de Bosch-Hale) et `τ_E` se dégrade avec la puissance. Le modèle est calé pour
+retrouver sur le plateau la puissance de fusion du bilan énergétique. Le front rejoue le cycle :
+courbes, et vue 3D animée (plasma, solénoïde, bobines, couverture).
 
 C'est un modèle pédagogique : formes simplifiées, pas un outil de dimensionnement.
 

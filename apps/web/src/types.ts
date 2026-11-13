@@ -56,6 +56,7 @@ export interface ReactorPreset {
   description: string;
   params: ReactorParams;
   power: PowerParams;
+  scenario: ScenarioParams;
 }
 
 export interface OpenSourceReference {
@@ -95,4 +96,59 @@ export interface PowerBalance {
   recirculatingFraction: number;
   plantEfficiency: number;
   neutronWallLoad: number | null;
+}
+
+// Miroir de apps/api/src/simulation/simulation.types.ts — durées en secondes.
+export interface ScenarioParams {
+  premagDuration: number;
+  rampUpDuration: number;
+  heatingDuration: number;
+  flatTopDuration: number;
+  rampDownDuration: number;
+  dwellDuration: number;
+}
+
+export interface SimulationPhase {
+  id: string;
+  label: string;
+  description: string;
+  start: number;
+  end: number;
+  startIndex: number;
+  endIndex: number;
+}
+
+export interface SimulationResult {
+  phases: SimulationPhase[];
+  samples: {
+    time: number[];
+    plasmaCurrent: number[];
+    solenoidCurrent: number[];
+    temperature: number[];
+    auxPower: number[];
+    fusionPower: number[];
+    thermalPower: number[];
+    grossElectric: number[];
+    netElectric: number[];
+    tritiumBurned: number[];
+  };
+  summary: {
+    cycleDuration: number;
+    flatTopFusionPower: number;
+    peakTemperature: number;
+    confinementTime: number;
+    netEnergy: number;
+    averageNetPower: number;
+    dutyFactor: number;
+    tritiumPerPulse: number;
+  };
+}
+
+/** État instantané de la machine pendant la simulation, pour animer la vue 3D (valeurs de 0 à 1). */
+export interface LiveState {
+  plasmaCurrent: number;
+  /** Courant du solénoïde, de −1 à 1 */
+  solenoidCurrent: number;
+  temperature: number;
+  fusion: number;
 }

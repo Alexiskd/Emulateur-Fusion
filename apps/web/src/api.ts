@@ -5,6 +5,8 @@ import type {
   ReactorModel,
   ReactorParams,
   ReactorPreset,
+  ScenarioParams,
+  SimulationResult,
 } from './types';
 
 const postJson = (body: unknown, signal?: AbortSignal): RequestInit => ({
@@ -31,4 +33,8 @@ export const api = {
     request<ReactorModel>('/reactors/build', postJson(params, signal)),
   powerBalance: (params: PowerParams, signal?: AbortSignal) =>
     request<PowerBalance>('/power-balance', postJson(params, signal)),
+  simulate: (
+    input: { power: PowerParams; plasmaVolume: number; scenario: ScenarioParams },
+    signal?: AbortSignal,
+  ) => request<SimulationResult>('/simulation', postJson(input, signal)),
 };

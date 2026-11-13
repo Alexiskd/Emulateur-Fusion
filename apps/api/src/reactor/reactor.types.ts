@@ -1,4 +1,5 @@
 import type { PowerParams } from '../power/power.types';
+import type { ScenarioParams } from '../simulation/simulation.types';
 
 /** Point d'un profil poloïdal : [r, z] en mètres (r = distance à l'axe, z = hauteur). */
 export type Point = [number, number];
@@ -74,4 +75,6 @@ export interface ReactorPreset {
   params: ReactorParams;
   /** Hypothèses par défaut du bilan énergétique */
   power: PowerParams;
+  /** Durées par défaut des phases d'une impulsion */
+  scenario: ScenarioParams;
 }

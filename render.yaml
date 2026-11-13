@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: emulateur-fusion
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/reactors/presets
+    envVars:
+      - key: NODE_VERSION
+        value: 22

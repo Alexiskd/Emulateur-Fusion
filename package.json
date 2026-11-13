@@ -1,0 +1,22 @@
+{
+  "name": "emulateur-fusion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modélisation 3D paramétrique et décomposition d'un réacteur à fusion nucléaire (tokamak) — React + NestJS",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm run test -w apps/api",
+    "start": "node apps/api/dist/main.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

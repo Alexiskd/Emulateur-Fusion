@@ -27,6 +27,8 @@ npm test         # tests du moteur de géométrie
 | POST | `/api/energy-transfer` | Chaîne de transfert d'énergie : puissances et flux du schéma |
 | POST | `/api/energy-transfer/optimize` | Meilleur réglage de chaque caloporteur |
 | GET | `/api/energy-transfer/coolants` | Caloporteurs et leurs limites |
+| POST | `/api/plant/evaluate` | Performance d'un réacteur, de la géométrie à l'électricité nette |
+| POST | `/api/plant/optimize` | Optimisation de toute la chaîne (bouton « Optimiser le réacteur ») |
 | GET | `/api/references` | Projets open-source de référence |
 
 Chaque composant est renvoyé sous forme de profil poloïdal `(r, z)` en mètres. Le front le met
@@ -71,6 +73,20 @@ Ici le rendement et le pompage ne sont plus des hypothèses, ils découlent des 
 L'optimiseur balaie les températures d'entrée, de sortie et de condensation de chaque caloporteur
 (eau pressurisée, hélium, sel fondu) dans les limites des matériaux, et retient le réglage qui
 maximise l'électricité nette.
+
+### Optimisation du réacteur entier
+
+Le bouton « Optimiser le réacteur » relie tous les maillons par des lois d'échelle classiques :
+champ sur l'axe (limite du conducteur et section des bobines), courant plasma (facteur de sécurité
+q = 3), densité (85 % de la limite de Greenwald), pression (bêta normalisé de 2), puissance de
+fusion (réactivité D-T), chauffage nécessaire (confinement IPB98(y,2)), puis la chaîne de
+transfert jusqu'à l'électricité nette. La machine type ITER retrouve ainsi 5,3 T, 15 MA et
+environ 500 MW.
+
+L'optimiseur fait varier la taille, le rapport d'aspect, la couverture et le blindage, calcule
+l'épaisseur de bobine nécessaire, respecte la charge neutronique (2 MW/m²), la puissance au
+divertor (17 MW/m) et la stabilité verticale, puis ajuste les températures du circuit. Trois
+objectifs au choix : rendement de la chaîne, électricité nette, électricité par tonne.
 
 C'est un modèle pédagogique : formes simplifiées, pas un outil de dimensionnement.
 

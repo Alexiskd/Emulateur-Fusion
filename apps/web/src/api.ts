@@ -1,4 +1,8 @@
 import type {
+  MagnetId,
+  MagnetTechnology,
+  Objective,
+  PlantOptimization,
   Coolant,
   OptimizationResult,
   TransferDesign,
@@ -42,6 +46,15 @@ export const api = {
     request<TransferResult>('/energy-transfer', postJson(input, signal)),
   optimizeTransfer: (input: { power: PowerParams; design: TransferDesign }) =>
     request<OptimizationResult>('/energy-transfer/optimize', postJson(input)),
+  magnets: () => request<MagnetTechnology[]>('/plant/magnets'),
+  optimizePlant: (input: {
+    params: ReactorParams;
+    power: PowerParams;
+    design: TransferDesign;
+    magnet: MagnetId;
+    objective: Objective;
+    maxMajorRadius: number;
+  }) => request<PlantOptimization>('/plant/optimize', postJson(input)),
   simulate: (
     input: { power: PowerParams; plasmaVolume: number; scenario: ScenarioParams },
     signal?: AbortSignal,

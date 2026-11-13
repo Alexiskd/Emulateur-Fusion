@@ -1,3 +1,4 @@
+import type { MagnetId } from '../plant/plant.types';
 import type { PowerParams } from '../power/power.types';
 import type { ScenarioParams } from '../simulation/simulation.types';
 import type { TransferDesign } from '../transfer/transfer.types';
@@ -80,4 +81,6 @@ export interface ReactorPreset {
   scenario: ScenarioParams;
   /** Réglage par défaut de la chaîne de transfert d'énergie */
   transfer: TransferDesign;
+  /** Technologie d'aimants supposée par l'optimiseur global */
+  magnet: MagnetId;
 }

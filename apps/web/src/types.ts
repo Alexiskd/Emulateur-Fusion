@@ -58,6 +58,7 @@ export interface ReactorPreset {
   power: PowerParams;
   scenario: ScenarioParams;
   transfer: TransferDesign;
+  magnet: MagnetId;
 }
 
 export interface OpenSourceReference {
@@ -226,4 +227,60 @@ export interface TransferResult {
 export interface OptimizationResult {
   baseline: TransferResult;
   candidates: { result: TransferResult; gain: number; activeLimits: string[] }[];
+}
+
+// Miroir de apps/api/src/plant/plant.types.ts — optimisation de la centrale complète.
+export type MagnetId = 'lts' | 'hts';
+export type Objective = 'efficiency' | 'net' | 'specific';
+
+export interface MagnetTechnology {
+  id: MagnetId;
+  label: string;
+  peakField: number;
+  currentDensity: number;
+}
+
+export interface PlantConstraint {
+  id: string;
+  label: string;
+  value: number;
+  limit: number;
+  unit: string;
+  ok: boolean;
+}
+
+export interface PlantEvaluation {
+  params: ReactorParams;
+  magnet: MagnetTechnology;
+  plasma: {
+    fieldOnAxis: number;
+    fieldAtCoil: number;
+    current: number;
+    density: number;
+    temperature: number;
+    beta: number;
+    fusionPower: number;
+    alphaPower: number;
+    lossPower: number;
+    auxPower: number;
+    gain: number;
+    confinementTime: number;
+  };
+  constraints: PlantConstraint[];
+  feasible: boolean;
+  power: PowerParams;
+  transfer: TransferResult;
+  mass: number;
+  netElectric: number;
+  plantEfficiency: number;
+  netPerTonne: number;
+}
+
+export interface PlantOptimization {
+  objective: Objective;
+  baseline: PlantEvaluation | null;
+  baselineError: string | null;
+  optimum: PlantEvaluation | null;
+  limits: string[];
+  evaluations: number;
 }

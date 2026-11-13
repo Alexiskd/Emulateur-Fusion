@@ -157,7 +157,9 @@ function buildFlows(power: PowerParams, k: Core): Flow[] {
     { from: 'fuel', to: 'plasma', value: power.fusionPower, kind: 'fusion' },
     { from: 'heating', to: 'plasma', value: power.auxHeatingPower, kind: 'heat' },
     { from: 'heating', to: 'losses', value: k.heating - power.auxHeatingPower, kind: 'loss' },
-    { from: 'plasma', to: 'blanket', value: neutron + WALL_FRACTION * charged, kind: 'fusion' },
+    { from: 'plasma', to: 'blanket', value: neutron * Math.min(1, power.blanketMultiplication) + WALL_FRACTION * charged, kind: 'fusion' },
+    // Couverture trop mince : une part des neutrons la traverse et se perd dans le blindage.
+    { from: 'plasma', to: 'losses', value: neutron * Math.max(0, 1 - power.blanketMultiplication), kind: 'loss' },
     { from: 'plasma', to: 'divertor', value: (1 - WALL_FRACTION) * charged, kind: 'fusion' },
     { from: 'multiplication', to: 'blanket', value: neutron * (power.blanketMultiplication - 1), kind: 'fusion' },
     { from: 'blanket', to: 'primary', value: k.blanket, kind: 'heat' },
@@ -276,6 +278,11 @@ function optimizeCoolant(power: PowerParams, coolant: Coolant, ambient: number):
     condenserTemperature: Math.round(best.condenser * 10) / 10,
     ambientTemperature: ambient,
   };
+}
+
+/** Meilleures températures pour un caloporteur donné. */
+export function optimizeCoolantDesign(power: PowerParams, coolant: CoolantId, ambient: number): TransferDesign {
+  return optimizeCoolant(power, COOLANTS[coolant], ambient);
 }
 
 function activeLimits(result: TransferResult): string[] {

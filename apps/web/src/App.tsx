@@ -3,6 +3,7 @@ import { api } from './api';
 import { ComponentTree } from './components/ComponentTree';
 import { EnergyDiagram } from './components/EnergyDiagram';
 import { ComponentInfo, References } from './components/InfoPanel';
+import { OptimizerOverlay, type PlantOptions } from './components/OptimizerOverlay';
 import { ParamPanel } from './components/ParamPanel';
 import { PowerPanel } from './components/PowerPanel';
 import { ReactorScene } from './components/ReactorScene';
@@ -11,6 +12,9 @@ import { TransferPanel } from './components/TransferPanel';
 import type {
   Coolant,
   LiveState,
+  MagnetTechnology,
+  PlantEvaluation,
+  PlantOptimization,
   OptimizationResult,
   OpenSourceReference,
   PowerBalance,
@@ -46,6 +50,12 @@ export function App() {
   const [transfer, setTransfer] = useState<TransferResult | null>(null);
   const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
   const [optimizing, setOptimizing] = useState(false);
+  const [magnets, setMagnets] = useState<MagnetTechnology[]>([]);
+  const [plantOpen, setPlantOpen] = useState(false);
+  const [plantOptions, setPlantOptions] = useState<PlantOptions>({ objective: 'efficiency', magnet: 'lts', maxMajorRadius: 10 });
+  const [plantResult, setPlantResult] = useState<PlantOptimization | null>(null);
+  const [plantLoading, setPlantLoading] = useState(false);
+  const [plantError, setPlantError] = useState<string | null>(null);
   const [scenario, setScenario] = useState<ScenarioParams | null>(null);
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
   const [frame, setFrame] = useState(0);
@@ -64,10 +74,12 @@ export function App() {
         setPowerParams(list[0].power);
         setScenario(list[0].scenario);
         setTransferDesign(list[0].transfer);
+        setPlantOptions((o) => ({ ...o, magnet: list[0].magnet }));
       })
       .catch(() => setError("API injoignable : lancez l'API NestJS (npm run dev)."));
     api.references().then(setReferences).catch(() => undefined);
     api.coolants().then(setCoolants).catch(() => undefined);
+    api.magnets().then(setMagnets).catch(() => undefined);
   }, []);
 
   // Reconstruit le modèle côté API à chaque changement de paramètres (avec un léger délai).
@@ -151,6 +163,32 @@ export function App() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setOptimizing(false));
+  };
+
+  // Optimisation globale : géométrie, plasma et chaîne de conversion d'un seul tenant.
+  const runPlantOptimization = (options: PlantOptions = plantOptions) => {
+    if (!params || !transferPower || !transferDesign) return;
+    setPlantLoading(true);
+    setPlantError(null);
+    api
+      .optimizePlant({ params, power: transferPower, design: transferDesign, ...options })
+      .then(setPlantResult)
+      .catch((e: Error) => setPlantError(e.message))
+      .finally(() => setPlantLoading(false));
+  };
+
+  const openPlantOptimizer = () => {
+    setPlantOpen(true);
+    setPlantResult(null);
+    runPlantOptimization();
+  };
+
+  const applyPlant = (optimum: PlantEvaluation) => {
+    setActivePresetId(null);
+    setParams(optimum.params);
+    setPowerParams(optimum.power);
+    setTransferDesign(optimum.transfer.design);
+    setPlantOpen(false);
   };
 
   const reportTransfer = () => {
@@ -247,6 +285,9 @@ export function App() {
         <header>
           <h1>Émulateur fusion</h1>
           <p className="muted">Modèle paramétrique d'un tokamak</p>
+          <button className="primary optimize" onClick={openPlantOptimizer} disabled={!params || !transferDesign}>
+            Optimiser le réacteur
+          </button>
         </header>
         {params && (
           <ParamPanel
@@ -259,6 +300,7 @@ export function App() {
               setPowerParams(p.power);
               setScenario(p.scenario);
               setTransferDesign(p.transfer);
+              setPlantOptions((o) => ({ ...o, magnet: p.magnet }));
               setFrame(0);
             }}
             onChange={(p) => {
@@ -301,6 +343,20 @@ export function App() {
         )}
 
         {error && <div className="error" role="alert">{error}</div>}
+
+        {plantOpen && (
+          <OptimizerOverlay
+            options={plantOptions}
+            magnets={magnets}
+            result={plantResult}
+            loading={plantLoading}
+            error={plantError}
+            onOptions={setPlantOptions}
+            onRun={() => runPlantOptimization()}
+            onApply={applyPlant}
+            onClose={() => setPlantOpen(false)}
+          />
+        )}
 
         {tab === 'transfer' && transfer && (
           <div className="stats">

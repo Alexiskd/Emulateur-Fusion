@@ -14,7 +14,7 @@ const FIELDS: Field[] = [
   { key: 'fusionPower', label: 'Puissance de fusion', min: 10, max: 5000, step: 10, unit: 'MW' },
   { key: 'auxHeatingPower', label: 'Chauffage injecté', min: 1, max: 300, step: 1, unit: 'MW' },
   { key: 'heatingEfficiency', label: 'Rendement du chauffage', min: 0.1, max: 0.9, step: 0.01, unit: '%' },
-  { key: 'blanketMultiplication', label: 'Multiplication couverture', min: 1, max: 1.5, step: 0.01, unit: '' },
+  { key: 'blanketMultiplication', label: 'Multiplication couverture', min: 0.5, max: 1.5, step: 0.01, unit: '' },
   { key: 'thermalEfficiency', label: 'Rendement du cycle', min: 0.2, max: 0.6, step: 0.01, unit: '%' },
   { key: 'cryoPower', label: 'Cryogénie', min: 0, max: 150, step: 1, unit: 'MW' },
   { key: 'magnetPower', label: 'Aimants', min: 0, max: 200, step: 1, unit: 'MW' },

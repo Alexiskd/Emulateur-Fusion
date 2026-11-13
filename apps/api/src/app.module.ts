@@ -5,6 +5,7 @@ import { PowerModule } from './power/power.module';
 import { ReactorModule } from './reactor/reactor.module';
 import { ReferencesModule } from './references/references.module';
 import { SimulationModule } from './simulation/simulation.module';
+import { TransferModule } from './transfer/transfer.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SimulationModule } from './simulation/simulation.module';
     ReactorModule,
     PowerModule,
     SimulationModule,
+    TransferModule,
     ReferencesModule,
   ],
 })

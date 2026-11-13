@@ -24,6 +24,9 @@ npm test         # tests du moteur de géométrie
 | POST | `/api/reactors/build` | Modèle complet à partir de paramètres libres |
 | POST | `/api/power-balance` | Bilan de puissance : fusion → chaleur → électricité nette |
 | POST | `/api/simulation` | Simulation d'une impulsion : séries temporelles et bilan du cycle |
+| POST | `/api/energy-transfer` | Chaîne de transfert d'énergie : puissances et flux du schéma |
+| POST | `/api/energy-transfer/optimize` | Meilleur réglage de chaque caloporteur |
+| GET | `/api/energy-transfer/coolants` | Caloporteurs et leurs limites |
 | GET | `/api/references` | Projets open-source de référence |
 
 Chaque composant est renvoyé sous forme de profil poloïdal `(r, z)` en mètres. Le front le met
@@ -53,6 +56,21 @@ plateau de combustion, descente, repos). L'énergie thermique du plasma suit
 D-T (ajustement de Bosch-Hale) et `τ_E` se dégrade avec la puissance. Le modèle est calé pour
 retrouver sur le plateau la puissance de fusion du bilan énergétique. Le front rejoue le cycle :
 courbes, et vue 3D animée (plasma, solénoïde, bobines, couverture).
+
+### Transfert d'énergie et optimisation
+
+Schéma complet du plasma au réseau : couverture et divertor, circuit primaire, générateur de
+vapeur, turbine et alternateur, condenseur et tours, poste électrique et consommations internes.
+Ici le rendement et le pompage ne sont plus des hypothèses, ils découlent des températures :
+
+- rendement du cycle = 73 % du rendement de Carnot entre la température moyenne du caloporteur
+  (moins le pincement de l'échangeur) et le condenseur ;
+- pompage primaire proportionnel au cube du débit, donc en `1/ΔT³` ;
+- consommation du refroidissement inversement proportionnelle à l'écart condenseur-ambiante.
+
+L'optimiseur balaie les températures d'entrée, de sortie et de condensation de chaque caloporteur
+(eau pressurisée, hélium, sel fondu) dans les limites des matériaux, et retient le réglage qui
+maximise l'électricité nette.
 
 C'est un modèle pédagogique : formes simplifiées, pas un outil de dimensionnement.
 

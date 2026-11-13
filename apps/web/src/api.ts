@@ -1,4 +1,8 @@
 import type {
+  Coolant,
+  OptimizationResult,
+  TransferDesign,
+  TransferResult,
   OpenSourceReference,
   PowerBalance,
   PowerParams,
@@ -33,6 +37,11 @@ export const api = {
     request<ReactorModel>('/reactors/build', postJson(params, signal)),
   powerBalance: (params: PowerParams, signal?: AbortSignal) =>
     request<PowerBalance>('/power-balance', postJson(params, signal)),
+  coolants: () => request<Coolant[]>('/energy-transfer/coolants'),
+  transfer: (input: { power: PowerParams; design: TransferDesign }, signal?: AbortSignal) =>
+    request<TransferResult>('/energy-transfer', postJson(input, signal)),
+  optimizeTransfer: (input: { power: PowerParams; design: TransferDesign }) =>
+    request<OptimizationResult>('/energy-transfer/optimize', postJson(input)),
   simulate: (
     input: { power: PowerParams; plasmaVolume: number; scenario: ScenarioParams },
     signal?: AbortSignal,

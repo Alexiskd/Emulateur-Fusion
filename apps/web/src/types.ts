@@ -57,6 +57,7 @@ export interface ReactorPreset {
   params: ReactorParams;
   power: PowerParams;
   scenario: ScenarioParams;
+  transfer: TransferDesign;
 }
 
 export interface OpenSourceReference {
@@ -160,4 +161,69 @@ export interface LiveState {
   solenoidCurrent: number;
   temperature: number;
   fusion: number;
+}
+
+// Miroir de apps/api/src/transfer/transfer.types.ts — températures en °C, puissances en MW.
+export type CoolantId = 'water' | 'helium' | 'molten-salt';
+
+export interface TransferDesign {
+  coolant: CoolantId;
+  inletTemperature: number;
+  outletTemperature: number;
+  condenserTemperature: number;
+  ambientTemperature: number;
+}
+
+export interface Coolant {
+  id: CoolantId;
+  label: string;
+  maturity: string;
+  heatCapacity: number;
+  minInlet: number;
+  maxInlet: number;
+  maxOutlet: number;
+  minDeltaT: number;
+  inletLimitReason: string;
+  outletLimitReason: string;
+  pumpingFractionRef: number;
+  deltaTRef: number;
+  pinch: number;
+}
+
+export type FlowKind = 'fusion' | 'heat' | 'low-heat' | 'electric' | 'loss';
+
+export interface Flow {
+  from: string;
+  to: string;
+  value: number;
+  kind: FlowKind;
+}
+
+export interface TransferResult {
+  design: TransferDesign;
+  coolant: Coolant;
+  heat: { blanket: number; divertor: number; primary: number; rejected: number };
+  primary: { massFlow: number; deltaT: number; pumpPower: number; meanTemperature: number };
+  cycle: { efficiency: number; carnotEfficiency: number; divertorEfficiency: number };
+  electric: {
+    gross: number;
+    net: number;
+    recirculating: {
+      heating: number;
+      cryo: number;
+      magnets: number;
+      primaryPumps: number;
+      cooling: number;
+      other: number;
+      total: number;
+    };
+  };
+  plantEfficiency: number;
+  equivalent: { thermalEfficiency: number; pumpingFraction: number };
+  flows: Flow[];
+}
+
+export interface OptimizationResult {
+  baseline: TransferResult;
+  candidates: { result: TransferResult; gain: number; activeLimits: string[] }[];
 }

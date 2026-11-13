@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { ComponentTree } from './components/ComponentTree';
+import { EnergyDiagram } from './components/EnergyDiagram';
 import { ComponentInfo, References } from './components/InfoPanel';
 import { ParamPanel } from './components/ParamPanel';
 import { PowerPanel } from './components/PowerPanel';
 import { ReactorScene } from './components/ReactorScene';
 import { formatDuration, SimulationPanel } from './components/SimulationPanel';
+import { TransferPanel } from './components/TransferPanel';
 import type {
+  Coolant,
   LiveState,
+  OptimizationResult,
   OpenSourceReference,
   PowerBalance,
   PowerParams,
@@ -16,6 +20,8 @@ import type {
   ReactorPreset,
   ScenarioParams,
   SimulationResult,
+  TransferDesign,
+  TransferResult,
 } from './types';
 
 /** Échantillons lus par seconde à vitesse ×1 : un cycle complet dure environ 12 s. */
@@ -34,7 +40,12 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [explode, setExplode] = useState(0);
   const [cutDegrees, setCutDegrees] = useState(90);
-  const [tab, setTab] = useState<'parts' | 'power' | 'sim' | 'refs'>('parts');
+  const [tab, setTab] = useState<'parts' | 'power' | 'sim' | 'transfer' | 'refs'>('parts');
+  const [coolants, setCoolants] = useState<Coolant[]>([]);
+  const [transferDesign, setTransferDesign] = useState<TransferDesign | null>(null);
+  const [transfer, setTransfer] = useState<TransferResult | null>(null);
+  const [optimization, setOptimization] = useState<OptimizationResult | null>(null);
+  const [optimizing, setOptimizing] = useState(false);
   const [scenario, setScenario] = useState<ScenarioParams | null>(null);
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
   const [frame, setFrame] = useState(0);
@@ -52,9 +63,11 @@ export function App() {
         setParams(list[0].params);
         setPowerParams(list[0].power);
         setScenario(list[0].scenario);
+        setTransferDesign(list[0].transfer);
       })
       .catch(() => setError("API injoignable : lancez l'API NestJS (npm run dev)."));
     api.references().then(setReferences).catch(() => undefined);
+    api.coolants().then(setCoolants).catch(() => undefined);
   }, []);
 
   // Reconstruit le modèle côté API à chaque changement de paramètres (avec un léger délai).
@@ -97,12 +110,66 @@ export function App() {
     };
   }, [powerParams, firstWallArea]);
 
+  // Chaîne de transfert d'énergie : recalculée quand le bilan ou le réglage changent.
+  const transferPower = useMemo(() => {
+    if (!powerParams) return null;
+    const { firstWallArea: _unused, ...power } = powerParams;
+    return power;
+  }, [powerParams]);
+  useEffect(() => {
+    if (tab !== 'transfer' || !transferPower || !transferDesign) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      api
+        .transfer({ power: transferPower, design: transferDesign }, controller.signal)
+        .then((result) => {
+          setTransfer(result);
+          setError(null);
+        })
+        .catch((e: Error) => {
+          if (e.name !== 'AbortError') setError(e.message);
+        });
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [tab, transferPower, transferDesign]);
+
+  // Un optimum calculé pour d'autres puissances ou un autre site n'est plus valable.
+  const ambientTemperature = transferDesign?.ambientTemperature;
+  useEffect(() => setOptimization(null), [transferPower, ambientTemperature]);
+
+  const optimize = () => {
+    if (!transferPower || !transferDesign) return;
+    setOptimizing(true);
+    api
+      .optimizeTransfer({ power: transferPower, design: transferDesign })
+      .then((result) => {
+        setOptimization(result);
+        setError(null);
+      })
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setOptimizing(false));
+  };
+
+  const reportTransfer = () => {
+    if (!transfer || !powerParams) return;
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+    setPowerParams({
+      ...powerParams,
+      thermalEfficiency: clamp(transfer.equivalent.thermalEfficiency, 0.1, 0.7),
+      pumpingFraction: clamp(transfer.equivalent.pumpingFraction, 0, 0.2),
+    });
+    setTab('power');
+  };
+
   // Simulation d'une impulsion : recalculée quand la machine, le bilan ou le scénario changent.
   const plasmaVolume = model?.summary.plasmaVolume;
   useEffect(() => {
     if (tab !== 'sim' || !powerParams || !scenario || !plasmaVolume) return;
     const controller = new AbortController();
-    const { firstWallArea: _unused, ...power } = powerParams;
+    const { firstWallArea: _ignored, ...power } = powerParams;
     const timer = setTimeout(() => {
       api
         .simulate({ power, plasmaVolume, scenario }, controller.signal)
@@ -191,6 +258,7 @@ export function App() {
               setParams(p.params);
               setPowerParams(p.power);
               setScenario(p.scenario);
+              setTransferDesign(p.transfer);
               setFrame(0);
             }}
             onChange={(p) => {
@@ -202,7 +270,8 @@ export function App() {
       </aside>
 
       <main className="viewport">
-        {model && (
+        {tab === 'transfer' && transfer && <EnergyDiagram result={transfer} />}
+        {tab !== 'transfer' && model && (
           <ReactorScene
             model={model}
             hidden={hidden}
@@ -214,7 +283,7 @@ export function App() {
           />
         )}
 
-        {model && (
+        {model && tab !== 'transfer' && (
           <div className="stats">
             <span>Rapport d'aspect <b>{fmt.format(model.summary.aspectRatio)}</b></span>
             <span>Volume plasma <b>{fmt.format(model.summary.plasmaVolume)} m³</b></span>
@@ -233,7 +302,16 @@ export function App() {
 
         {error && <div className="error" role="alert">{error}</div>}
 
-        <div className="view-controls">
+        {tab === 'transfer' && transfer && (
+          <div className="stats">
+            <span>Fusion <b>{fmt.format(transferPower?.fusionPower ?? 0)} MW</b></span>
+            <span>Chaleur utile <b>{fmt.format(transfer.heat.primary + transfer.heat.divertor)} MW</b></span>
+            <span>Électricité brute <b>{fmt.format(transfer.electric.gross)} MW</b></span>
+            <span>Électricité nette <b>{fmt.format(transfer.electric.net)} MW</b></span>
+          </div>
+        )}
+
+        <div className="view-controls" hidden={tab === 'transfer'}>
           <label>
             Vue éclatée
             <input type="range" min={0} max={1} step={0.01} value={explode} onChange={(e) => setExplode(Number(e.target.value))} />
@@ -251,7 +329,8 @@ export function App() {
           <button className={tab === 'parts' ? 'active' : ''} onClick={() => setTab('parts')}>Pièces</button>
           <button className={tab === 'power' ? 'active' : ''} onClick={() => setTab('power')}>Bilan</button>
           <button className={tab === 'sim' ? 'active' : ''} onClick={() => setTab('sim')}>Simulation</button>
-          <button className={tab === 'refs' ? 'active' : ''} onClick={() => setTab('refs')}>Références</button>
+          <button className={tab === 'transfer' ? 'active' : ''} onClick={() => setTab('transfer')}>Transfert</button>
+          <button className={tab === 'refs' ? 'active' : ''} onClick={() => setTab('refs')}>Réf.</button>
         </nav>
         <div className="panel-body">
           {tab === 'parts' && model && (
@@ -283,6 +362,18 @@ export function App() {
               }}
               onSpeed={setSpeed}
               onScenario={setScenario}
+            />
+          )}
+          {tab === 'transfer' && transferDesign && (
+            <TransferPanel
+              design={transferDesign}
+              result={transfer}
+              coolants={coolants}
+              optimization={optimization}
+              optimizing={optimizing}
+              onDesign={setTransferDesign}
+              onOptimize={optimize}
+              onReport={reportTransfer}
             />
           )}
           {tab === 'refs' && <References references={references} />}

@@ -1,5 +1,6 @@
 import type { PowerParams } from '../power/power.types';
 import type { ScenarioParams } from '../simulation/simulation.types';
+import type { TransferDesign } from '../transfer/transfer.types';
 
 /** Point d'un profil poloïdal : [r, z] en mètres (r = distance à l'axe, z = hauteur). */
 export type Point = [number, number];
@@ -77,4 +78,6 @@ export interface ReactorPreset {
   power: PowerParams;
   /** Durées par défaut des phases d'une impulsion */
   scenario: ScenarioParams;
+  /** Réglage par défaut de la chaîne de transfert d'énergie */
+  transfer: TransferDesign;
 }

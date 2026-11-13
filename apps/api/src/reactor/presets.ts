@@ -22,6 +22,7 @@ export const PRESETS: ReactorPreset[] = [
     },
     power: { fusionPower: 500, auxHeatingPower: 50, heatingEfficiency: 0.4, blanketMultiplication: 1.0, thermalEfficiency: 0.33, cryoPower: 30, magnetPower: 20, pumpingFraction: 0.02, otherFraction: 0.05 },
     scenario: { premagDuration: 60, rampUpDuration: 80, heatingDuration: 50, flatTopDuration: 400, rampDownDuration: 60, dwellDuration: 300 },
+    transfer: { coolant: 'water', inletTemperature: 70, outletTemperature: 120, condenserTemperature: 40, ambientTemperature: 20 },
   },
   {
     id: 'demo-like',
@@ -43,6 +44,7 @@ export const PRESETS: ReactorPreset[] = [
     },
     power: { fusionPower: 2000, auxHeatingPower: 50, heatingEfficiency: 0.4, blanketMultiplication: 1.25, thermalEfficiency: 0.37, cryoPower: 40, magnetPower: 20, pumpingFraction: 0.05, otherFraction: 0.04 },
     scenario: { premagDuration: 120, rampUpDuration: 200, heatingDuration: 100, flatTopDuration: 7200, rampDownDuration: 200, dwellDuration: 600 },
+    transfer: { coolant: 'helium', inletTemperature: 320, outletTemperature: 500, condenserTemperature: 40, ambientTemperature: 20 },
   },
   {
     id: 'compact-high-field',
@@ -64,5 +66,6 @@ export const PRESETS: ReactorPreset[] = [
     },
     power: { fusionPower: 140, auxHeatingPower: 12, heatingEfficiency: 0.5, blanketMultiplication: 1.1, thermalEfficiency: 0.35, cryoPower: 5, magnetPower: 2, pumpingFraction: 0.02, otherFraction: 0.05 },
     scenario: { premagDuration: 10, rampUpDuration: 8, heatingDuration: 4, flatTopDuration: 10, rampDownDuration: 8, dwellDuration: 30 },
+    transfer: { coolant: 'molten-salt', inletTemperature: 530, outletTemperature: 620, condenserTemperature: 40, ambientTemperature: 20 },
   },
 ];

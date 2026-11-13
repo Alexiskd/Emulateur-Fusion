@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main.js",
-    "test": "tsx --test src/reactor/geometry.test.ts src/power/power.test.ts src/simulation/simulation.test.ts"
+    "test": "tsx --test src/reactor/geometry.test.ts src/power/power.test.ts src/simulation/simulation.test.ts src/transfer/transfer.test.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.4",

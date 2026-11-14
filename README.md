@@ -88,6 +88,16 @@ l'épaisseur de bobine nécessaire, respecte la charge neutronique (2 MW/m²), l
 divertor (17 MW/m) et la stabilité verticale, puis ajuste les températures du circuit. Trois
 objectifs au choix : rendement de la chaîne, électricité nette, électricité par tonne.
 
+### Fonctionnement pulsé ou continu
+
+En mode pulsé, le courant plasma est induit par le solénoïde et l'impulsion s'arrête quand il
+arrive en bout de course. En mode continu, le courant est entretenu par le plasma lui-même
+(bootstrap) et par injection de puissance : l'optimiseur vise alors un scénario avancé (q = 5,
+bêta normalisé de 3, confinement amélioré H = 1,6) et compte la puissance d'entraînement du
+courant dans le chauffage. La machine type ITER retrouve ainsi le scénario stationnaire du vrai
+ITER : environ 9 MA, plus de la moitié du courant auto-générée. Dans la simulation, le solénoïde
+reste figé pendant le plateau.
+
 C'est un modèle pédagogique : formes simplifiées, pas un outil de dimensionnement.
 
 ## Références

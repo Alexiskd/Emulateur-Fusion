@@ -117,6 +117,7 @@ export interface ScenarioParams {
   flatTopDuration: number;
   rampDownDuration: number;
   dwellDuration: number;
+  mode?: Operation;
 }
 
 export interface SimulationPhase {
@@ -232,6 +233,8 @@ export interface OptimizationResult {
 // Miroir de apps/api/src/plant/plant.types.ts — optimisation de la centrale complète.
 export type MagnetId = 'lts' | 'hts';
 export type Objective = 'efficiency' | 'net' | 'specific';
+/** pulsed : courant induit par le solénoïde · steady : courant entretenu en continu */
+export type Operation = 'pulsed' | 'steady';
 
 export interface MagnetTechnology {
   id: MagnetId;
@@ -252,6 +255,7 @@ export interface PlantConstraint {
 export interface PlantEvaluation {
   params: ReactorParams;
   magnet: MagnetTechnology;
+  operation: Operation;
   plasma: {
     fieldOnAxis: number;
     fieldAtCoil: number;
@@ -263,6 +267,8 @@ export interface PlantEvaluation {
     alphaPower: number;
     lossPower: number;
     auxPower: number;
+    bootstrapFraction: number;
+    currentDrivePower: number;
     gain: number;
     confinementTime: number;
   };

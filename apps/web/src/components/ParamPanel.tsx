@@ -39,6 +39,9 @@ const SECTIONS: { title: string; fields: Field[] }[] = [
   },
 ];
 
+/** Les valeurs calculées par l'optimiseur ont beaucoup de décimales : on en affiche trois au plus. */
+const display = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 });
+
 interface Props {
   presets: ReactorPreset[];
   activePresetId: string | null;
@@ -72,7 +75,7 @@ export function ParamPanel({ presets, activePresetId, params, onPreset, onChange
               <span className="slider-head">
                 <span>{f.label}</span>
                 <output>
-                  {params[f.key]} {f.unit}
+                  {display.format(params[f.key])} {f.unit}
                 </output>
               </span>
               <input

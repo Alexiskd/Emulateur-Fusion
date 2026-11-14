@@ -52,3 +52,22 @@ test('tritium consommé : environ 0,36 g pour 500 MW pendant 400 s', () => {
   const { result } = run(0);
   assert.ok(result.summary.tritiumPerPulse > 0.3 && result.summary.tritiumPerPulse < 0.5);
 });
+
+test('mode continu : le solénoïde reste figé pendant le plateau et la combustion occupe plus de temps', () => {
+  const preset = PRESETS[1];
+  const plasmaVolume = buildReactor(preset.params).summary.plasmaVolume;
+  const pulsed = simulatePulse({ power: preset.power, plasmaVolume, scenario: preset.scenario });
+  const steady = simulatePulse({
+    power: preset.power,
+    plasmaVolume,
+    scenario: { ...preset.scenario, mode: 'steady', flatTopDuration: 28800 },
+  });
+  const plateau = steady.phases[3];
+  const during = steady.samples.solenoidCurrent.slice(plateau.startIndex, plateau.endIndex);
+  assert.ok(during.every((v) => Math.abs(v - 0.4) < 1e-9));
+  assert.equal(plateau.label, 'Régime continu');
+  assert.equal(pulsed.phases[3].label, 'Plateau de combustion');
+  assert.ok(Math.min(...pulsed.samples.solenoidCurrent) < -0.99);
+  assert.ok(steady.summary.dutyFactor > pulsed.summary.dutyFactor);
+  assert.ok(Math.abs(steady.summary.flatTopFusionPower / preset.power.fusionPower - 1) < 0.03);
+});

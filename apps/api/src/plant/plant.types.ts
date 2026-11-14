@@ -13,6 +13,13 @@ export interface MagnetTechnology {
   currentDensity: number;
 }
 
+/**
+ * Mode de fonctionnement.
+ * - pulsed : courant plasma induit par le solénoïde, donc impulsions de durée limitée.
+ * - steady : courant entretenu en continu par le plasma lui-même (bootstrap) et par des ondes ou des neutres.
+ */
+export type Operation = 'pulsed' | 'steady';
+
 /** Ce que l'optimiseur cherche à maximiser. */
 export type Objective = 'efficiency' | 'net' | 'specific';
 
@@ -22,6 +29,8 @@ export interface PlantInput {
   power: PowerParams;
   design: TransferDesign;
   magnet: MagnetId;
+  /** Pulsé par défaut */
+  operation?: Operation;
 }
 
 export interface PlantOptimizationInput extends PlantInput {
@@ -42,6 +51,7 @@ export interface Constraint {
 export interface PlantEvaluation {
   params: ReactorParams;
   magnet: MagnetTechnology;
+  operation: Operation;
   plasma: {
     /** Champ toroïdal sur l'axe (T) */
     fieldOnAxis: number;
@@ -60,6 +70,10 @@ export interface PlantEvaluation {
     /** Pertes par transport à compenser (MW) */
     lossPower: number;
     auxPower: number;
+    /** Part du courant plasma générée par le plasma lui-même */
+    bootstrapFraction: number;
+    /** Puissance à injecter pour entretenir le reste du courant en continu (MW) ; 0 en mode pulsé */
+    currentDrivePower: number;
     gain: number;
     confinementTime: number;
   };

@@ -8,6 +8,8 @@ export interface ScenarioParams {
   flatTopDuration: number;
   rampDownDuration: number;
   dwellDuration: number;
+  /** steady : le courant est entretenu sans le solénoïde pendant le plateau. Pulsé par défaut. */
+  mode?: 'pulsed' | 'steady';
 }
 
 export interface SimulationInput {

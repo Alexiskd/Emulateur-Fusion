@@ -52,7 +52,12 @@ export function App() {
   const [optimizing, setOptimizing] = useState(false);
   const [magnets, setMagnets] = useState<MagnetTechnology[]>([]);
   const [plantOpen, setPlantOpen] = useState(false);
-  const [plantOptions, setPlantOptions] = useState<PlantOptions>({ objective: 'efficiency', magnet: 'lts', maxMajorRadius: 10 });
+  const [plantOptions, setPlantOptions] = useState<PlantOptions>({
+    objective: 'efficiency',
+    operation: 'pulsed',
+    magnet: 'lts',
+    maxMajorRadius: 10,
+  });
   const [plantResult, setPlantResult] = useState<PlantOptimization | null>(null);
   const [plantLoading, setPlantLoading] = useState(false);
   const [plantError, setPlantError] = useState<string | null>(null);
@@ -188,6 +193,14 @@ export function App() {
     setParams(optimum.params);
     setPowerParams(optimum.power);
     setTransferDesign(optimum.transfer.design);
+    // La simulation suit le mode retenu ; en continu, on montre un plateau de 8 h.
+    setScenario((s) =>
+      s && {
+        ...s,
+        mode: optimum.operation,
+        flatTopDuration: optimum.operation === 'steady' ? Math.max(s.flatTopDuration, 28800) : s.flatTopDuration,
+      },
+    );
     setPlantOpen(false);
   };
 

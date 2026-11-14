@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, Module, Post } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsNumber, Max, Min, ValidateNested } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, Max, Min, ValidateNested } from 'class-validator';
 import { PowerParamsDto } from '../power/power.module';
 import { simulatePulse } from './simulation';
 import { ScenarioParams, SimulationInput } from './simulation.types';
@@ -12,6 +12,7 @@ export class ScenarioParamsDto implements ScenarioParams {
   @IsNumber() @Min(1) @Max(86400) flatTopDuration: number;
   @IsNumber() @Min(1) @Max(3600) rampDownDuration: number;
   @IsNumber() @Min(1) @Max(7200) dwellDuration: number;
+  @IsOptional() @IsIn(['pulsed', 'steady']) mode?: 'pulsed' | 'steady';
 }
 
 export class SimulationDto implements SimulationInput {

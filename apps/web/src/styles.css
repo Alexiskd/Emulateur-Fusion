@@ -131,6 +131,10 @@ button.primary { width: 100%; border-color: var(--accent); font-weight: 600; }
 .gain.down { color: #ef7a8f; }
 
 button.optimize { margin-top: 10px; }
+.segmented { display: flex; gap: 6px; margin-bottom: 8px; }
+.segmented button { flex: 1; }
+.segmented button.active { border-color: var(--accent); }
+.overlay-options label:first-child { grid-column: 1 / -1; }
 .overlay { position: absolute; inset: 0; z-index: 5; display: flex; justify-content: center; align-items: flex-start; padding: 24px; background: rgba(6, 9, 14, 0.72); overflow-y: auto; }
 .overlay-card { width: min(720px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
 .overlay-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }

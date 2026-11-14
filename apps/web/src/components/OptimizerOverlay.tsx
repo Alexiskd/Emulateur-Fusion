@@ -1,4 +1,4 @@
-import type { MagnetId, MagnetTechnology, Objective, PlantEvaluation, PlantOptimization } from '../types';
+import type { MagnetId, MagnetTechnology, Objective, Operation, PlantEvaluation, PlantOptimization } from '../types';
 
 const num = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 const dec1 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
@@ -11,8 +11,18 @@ const OBJECTIVES: { id: Objective; label: string; hint: string }[] = [
   { id: 'specific', label: 'Électricité par tonne', hint: 'Le plus de MW par tonne de machine : un indicateur de coût.' },
 ];
 
+const OPERATIONS: { id: Operation; label: string; hint: string }[] = [
+  { id: 'pulsed', label: 'Pulsé', hint: 'Courant induit par le solénoïde : impulsions de durée limitée.' },
+  {
+    id: 'steady',
+    label: 'Continu',
+    hint: "Courant entretenu sans solénoïde, scénario avancé : moins de courant, plus de pression, confinement amélioré (H = 1,6, encore à démontrer).",
+  },
+];
+
 export interface PlantOptions {
   objective: Objective;
+  operation: Operation;
   magnet: MagnetId;
   maxMajorRadius: number;
 }
@@ -42,6 +52,8 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
       { label: 'Courant plasma', value: (e) => `${dec1.format(e.plasma.current)} MA` },
       { label: 'Température', value: (e) => `${num.format(e.plasma.temperature * 11.6)} M°C` },
       { label: 'Puissance de fusion', value: (e) => `${num.format(e.plasma.fusionPower)} MW` },
+      { label: 'Courant auto-généré', value: (e) => pct.format(e.plasma.bootstrapFraction) },
+      { label: 'Entraînement du courant', value: (e) => (e.operation === 'steady' ? `${num.format(e.plasma.currentDrivePower)} MW` : '—') },
       { label: 'Chauffage nécessaire', value: (e) => `${num.format(e.plasma.auxPower)} MW` },
       { label: 'Gain du plasma Q', value: (e) => dec1.format(e.plasma.gain) },
     ],
@@ -74,6 +86,7 @@ interface Props {
 
 export function OptimizerOverlay({ options, magnets, result, loading, error, onOptions, onRun, onApply, onClose }: Props) {
   const objective = OBJECTIVES.find((o) => o.id === options.objective) ?? OBJECTIVES[0];
+  const operation = OPERATIONS.find((o) => o.id === options.operation) ?? OPERATIONS[0];
   const baseline = result?.baseline ?? null;
   const optimum = result?.optimum ?? null;
 
@@ -93,6 +106,14 @@ export function OptimizerOverlay({ options, magnets, result, loading, error, onO
             Objectif
             <select className="select" value={options.objective} onChange={(e) => onOptions({ ...options, objective: e.target.value as Objective })}>
               {OBJECTIVES.map((o) => (
+                <option key={o.id} value={o.id}>{o.label}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Fonctionnement
+            <select className="select" value={options.operation} onChange={(e) => onOptions({ ...options, operation: e.target.value as Operation })}>
+              {OPERATIONS.map((o) => (
                 <option key={o.id} value={o.id}>{o.label}</option>
               ))}
             </select>
@@ -121,6 +142,7 @@ export function OptimizerOverlay({ options, magnets, result, loading, error, onO
           </button>
         </div>
         <p className="muted small">{objective.hint}</p>
+        <p className="muted small">{operation.label} : {operation.hint}</p>
 
         {error && <div className="error inline" role="alert">{error}</div>}
         {result?.baselineError && <p className="muted small">Réacteur actuel non évaluable : {result.baselineError}</p>}

@@ -68,6 +68,23 @@ const PHASES: Pick<SimulationPhase, 'id' | 'label' | 'description'>[] = [
   },
 ];
 
+/** En fonctionnement continu, trois phases changent de nature. */
+const STEADY_PHASES: Partial<Record<SimulationPhase['id'], Pick<SimulationPhase, 'label' | 'description'>>> = {
+  'flat-top': {
+    label: 'Régime continu',
+    description:
+      "Le courant est entretenu par le plasma lui-même et par injection d'ondes ou de neutres : le solénoïde reste figé, plus rien ne limite la durée.",
+  },
+  'ramp-down': {
+    label: 'Arrêt programmé',
+    description: 'Arrêt volontaire, par exemple pour maintenance : chauffage coupé, courant plasma ramené à zéro de façon contrôlée.',
+  },
+  dwell: {
+    label: 'Arrêt',
+    description: 'Machine à l\'arrêt avant le redémarrage. Cryogénie et aimants continuent de consommer.',
+  },
+};
+
 export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput): SimulationResult {
   const durations = [
     scenario.premagDuration,
@@ -77,6 +94,7 @@ export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput
     scenario.rampDownDuration,
     scenario.dwellDuration,
   ];
+  const steady = scenario.mode === 'steady';
   const bounds = [0];
   for (const d of durations) bounds.push(bounds[bounds.length - 1] + d);
   const [, t1, t2, t3, t4, t5, t6] = bounds;
@@ -92,6 +110,8 @@ export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput
   const solenoidCurrent = (t: number) => {
     if (t < t1) return smooth(t / scenario.premagDuration);
     if (t < t2) return 1 - 0.6 * smooth((t - t1) / scenario.rampUpDuration);
+    // En continu, le solénoïde ne sert qu'au démarrage : son courant reste figé pendant le plateau.
+    if (steady) return t < t4 ? 0.4 : 0.4 * (1 - smooth((t - t4) / scenario.rampDownDuration));
     if (t < t4) return 0.4 - (1.4 * (t - t2)) / (t4 - t2);
     return -1 + smooth((t - t4) / scenario.rampDownDuration);
   };
@@ -194,6 +214,7 @@ export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput
 
   const phases: SimulationPhase[] = PHASES.map((phase, k) => ({
     ...phase,
+    ...(steady ? STEADY_PHASES[phase.id] : undefined),
     start: bounds[k],
     end: bounds[k + 1],
     startIndex: k * SAMPLES_PER_PHASE,

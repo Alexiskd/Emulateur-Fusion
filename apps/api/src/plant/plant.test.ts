@@ -58,3 +58,25 @@ test('un domaine trop petit ne renvoie pas de faux optimum', () => {
   assert.ok(o.optimum === null || o.optimum.feasible);
   assert.ok(o.limits.length > 0);
 });
+
+test('mode continu : la machine type ITER retrouve le scénario stationnaire du vrai ITER', () => {
+  const pulsed = evaluatePlant(input(0));
+  const steady = evaluatePlant({ ...input(0), operation: 'steady' });
+  // Scénario stationnaire d'ITER : environ 9 MA, moitié du courant auto-générée, Q voisin de 5.
+  assert.ok(steady.plasma.current > 8 && steady.plasma.current < 10, `courant ${steady.plasma.current}`);
+  assert.ok(steady.plasma.bootstrapFraction > 0.4 && steady.plasma.bootstrapFraction < 0.75, `bootstrap ${steady.plasma.bootstrapFraction}`);
+  assert.ok(steady.plasma.gain > 2.5 && steady.plasma.gain < 8, `gain ${steady.plasma.gain}`);
+  assert.ok(steady.plasma.currentDrivePower > 0);
+  assert.ok(steady.plasma.auxPower >= steady.plasma.currentDrivePower - 1e-9);
+  // En pulsé, pas d'entraînement du courant et moins de courant auto-généré.
+  assert.equal(pulsed.plasma.currentDrivePower, 0);
+  assert.equal(pulsed.operation, 'pulsed');
+  assert.ok(pulsed.plasma.bootstrapFraction < steady.plasma.bootstrapFraction);
+});
+
+test("mode continu : l'optimiseur trouve un réacteur admissible à bilan positif", () => {
+  const o = optimizePlant({ ...input(1), operation: 'steady', objective: 'efficiency', maxMajorRadius: 10 });
+  const optimum = o.optimum!;
+  assert.ok(optimum && optimum.feasible && optimum.operation === 'steady');
+  assert.ok(optimum.netElectric > 0);
+});

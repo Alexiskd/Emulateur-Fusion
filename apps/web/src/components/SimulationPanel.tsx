@@ -100,11 +100,11 @@ function Chart({ title, series, phases, index }: ChartProps) {
   );
 }
 
-const SCENARIO_FIELDS: { key: keyof ScenarioParams; label: string; min: number; max: number; step: number }[] = [
+const SCENARIO_FIELDS: { key: Exclude<keyof ScenarioParams, 'mode'>; label: string; min: number; max: number; step: number }[] = [
   { key: 'premagDuration', label: 'Pré-magnétisation', min: 5, max: 600, step: 5 },
   { key: 'rampUpDuration', label: 'Montée du courant', min: 2, max: 600, step: 2 },
   { key: 'heatingDuration', label: 'Chauffage', min: 2, max: 600, step: 2 },
-  { key: 'flatTopDuration', label: 'Plateau de combustion', min: 5, max: 28800, step: 5 },
+  { key: 'flatTopDuration', label: 'Plateau de combustion', min: 5, max: 86400, step: 5 },
   { key: 'rampDownDuration', label: 'Descente', min: 2, max: 600, step: 2 },
   { key: 'dwellDuration', label: 'Repos', min: 5, max: 3600, step: 5 },
 ];
@@ -225,6 +225,21 @@ export function SimulationPanel(props: Props) {
         <dt>Temps de confinement</dt>
         <dd>{dec.format(summary.confinementTime)} s</dd>
       </dl>
+
+      <h2>Mode de fonctionnement</h2>
+      <div className="segmented" role="group" aria-label="Mode de fonctionnement">
+        <button className={scenario.mode === 'steady' ? '' : 'active'} onClick={() => onScenario({ ...scenario, mode: 'pulsed' })}>
+          Pulsé
+        </button>
+        <button className={scenario.mode === 'steady' ? 'active' : ''} onClick={() => onScenario({ ...scenario, mode: 'steady' })}>
+          Continu
+        </button>
+      </div>
+      <p className="muted small">
+        {scenario.mode === 'steady'
+          ? "Le courant est entretenu sans le solénoïde : la durée du plateau n'est plus limitée. Le chauffage du bilan doit inclure l'entraînement du courant."
+          : "Le solénoïde induit le courant : le plateau s'arrête quand il arrive en bout de course."}
+      </p>
 
       <h2>Durée des phases</h2>
       {SCENARIO_FIELDS.map((f) => (

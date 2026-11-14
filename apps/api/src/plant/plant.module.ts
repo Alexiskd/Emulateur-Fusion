@@ -1,18 +1,19 @@
 import { BadRequestException, Body, Controller, Get, HttpCode, Module, Post } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, Max, Min, ValidateNested } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, Max, Min, ValidateNested } from 'class-validator';
 import { PowerParamsDto } from '../power/power.module';
 import { ReactorParamsDto } from '../reactor/dto/reactor-params.dto';
 import { RadialBuildError } from '../reactor/geometry';
 import { TransferDesignDto } from '../transfer/transfer.module';
 import { evaluatePlant, MAGNETS, optimizePlant } from './plant';
-import { MagnetId, Objective, PlantInput, PlantOptimizationInput } from './plant.types';
+import { MagnetId, Objective, Operation, PlantInput, PlantOptimizationInput } from './plant.types';
 
 export class PlantDto implements PlantInput {
   @ValidateNested() @Type(() => ReactorParamsDto) params: ReactorParamsDto;
   @ValidateNested() @Type(() => PowerParamsDto) power: PowerParamsDto;
   @ValidateNested() @Type(() => TransferDesignDto) design: TransferDesignDto;
   @IsIn(Object.keys(MAGNETS)) magnet: MagnetId;
+  @IsOptional() @IsIn(['pulsed', 'steady']) operation?: Operation;
 }
 
 export class PlantOptimizationDto extends PlantDto implements PlantOptimizationInput {

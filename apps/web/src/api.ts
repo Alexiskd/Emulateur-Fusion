@@ -1,4 +1,5 @@
 import type {
+  Operation,
   MagnetId,
   MagnetTechnology,
   Objective,
@@ -52,6 +53,7 @@ export const api = {
     power: PowerParams;
     design: TransferDesign;
     magnet: MagnetId;
+    operation: Operation;
     objective: Objective;
     maxMajorRadius: number;
   }) => request<PlantOptimization>('/plant/optimize', postJson(input)),

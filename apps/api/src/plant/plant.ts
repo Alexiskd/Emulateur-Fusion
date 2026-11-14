@@ -10,6 +10,7 @@ import {
   MagnetId,
   MagnetTechnology,
   Objective,
+  Operation,
   PlantEvaluation,
   PlantInput,
   PlantOptimization,
@@ -31,16 +32,20 @@ export const MAGNETS: Record<MagnetId, MagnetTechnology> = {
   hts: { id: 'hts', label: 'Supraconducteur haute température (20 T)', peakField: 20, currentDensity: 30 },
 };
 
-/** Facteur de sécurité au bord : en dessous de 3, le plasma devient instable. */
-const SAFETY_FACTOR = 3;
+/**
+ * Point de fonctionnement du plasma selon le mode.
+ * En continu, on vise un scénario « avancé » : moins de courant (facteur de sécurité plus élevé),
+ * plus de pression et un meilleur confinement, pour que le plasma génère lui-même une grande part de son courant.
+ */
+const SCENARIOS: Record<Operation, { safetyFactor: number; normalizedBeta: number; confinementFactor: number }> = {
+  pulsed: { safetyFactor: 3, normalizedBeta: 2.0, confinementFactor: 1.0 },
+  // Le confinement amélioré (H = 1,6) est l'hypothèse des scénarios stationnaires d'ITER ; il reste à démontrer.
+  steady: { safetyFactor: 5, normalizedBeta: 3.0, confinementFactor: 1.6 },
+};
 /** Fraction de la limite de densité de Greenwald. */
 const GREENWALD_FRACTION = 0.85;
-/** Bêta normalisé, prudent par rapport à la limite de Troyon. */
-const NORMALIZED_BETA = 2.0;
 /** Effet combiné des profils piqués et de la dilution du combustible sur la puissance de fusion. */
 const FUSION_FACTOR = 0.8;
-/** Facteur de confinement par rapport à la loi IPB98(y,2). */
-const CONFINEMENT_FACTOR = 1.0;
 /** Part de la puissance de chauffage rayonnée avant d'atteindre le divertor. */
 const RADIATED_FRACTION = 0.7;
 /** Chauffage minimal conservé pour piloter le plasma, en part de la puissance de fusion. */
@@ -78,8 +83,9 @@ export function requiredCoilThickness(p: ReactorParams, magnet: MagnetTechnology
  * Évalue un réacteur. Lève une erreur si l'empilement radial est impossible ;
  * les autres limites sont rapportées dans `constraints`.
  */
-export function evaluatePlant({ params, power, design, magnet: magnetId }: PlantInput): PlantEvaluation {
+export function evaluatePlant({ params, power, design, magnet: magnetId, operation = 'pulsed' }: PlantInput): PlantEvaluation {
   const magnet = MAGNETS[magnetId];
+  const scenario = SCENARIOS[operation];
   const { majorRadius: R, minorRadius: a, elongation: kappa, triangularity: delta } = params;
   const model = buildReactor(params); // vérifie aussi que tout tient côté intérieur
   const epsilon = a / R;
@@ -93,11 +99,11 @@ export function evaluatePlant({ params, power, design, magnet: magnetId }: Plant
 
   // Courant plasma au facteur de sécurité choisi, avec l'effet de la forme.
   const shape = ((1 + kappa ** 2 * (1 + 2 * delta ** 2 - 1.2 * delta ** 3)) / 2) * ((1.17 - 0.65 * epsilon) / (1 - epsilon ** 2) ** 2);
-  const current = ((5 * a * a * field) / (R * SAFETY_FACTOR)) * shape;
+  const current = ((5 * a * a * field) / (R * scenario.safetyFactor)) * shape;
 
   // Densité (Greenwald) et pression (bêta) : elles fixent la température.
   const density = (GREENWALD_FRACTION * current) / (Math.PI * a * a); // 10²⁰ m⁻³
-  const beta = (NORMALIZED_BETA * current) / (a * field); // %
+  const beta = (scenario.normalizedBeta * current) / (a * field); // %
   const pressure = ((beta / 100) * field * field) / (2 * MU0); // Pa
   const temperature = pressure / (2 * density * 1e20 * KEV);
 
@@ -110,9 +116,20 @@ export function evaluatePlant({ params, power, design, magnet: magnetId }: Plant
   // Confinement IPB98(y,2) : τ = C·P^-0,69, donc les pertes valent (W/C)^(1/0,31).
   const energy = (1.5 * pressure * volume) / 1e6; // MJ
   const coefficient =
-    0.0562 * CONFINEMENT_FACTOR * current ** 0.93 * field ** 0.15 * (10 * density) ** 0.41 * R ** 1.97 * epsilon ** 0.58 * kappa ** 0.78 * 2.5 ** 0.19;
+    0.0562 * scenario.confinementFactor * current ** 0.93 * field ** 0.15 * (10 * density) ** 0.41 * R ** 1.97 * epsilon ** 0.58 * kappa ** 0.78 * 2.5 ** 0.19;
   const lossPower = (energy / coefficient) ** (1 / 0.31);
-  const auxPower = Math.max(lossPower - alphaPower, MIN_AUX_FRACTION * fusionPower, 1);
+
+  // Courant auto-généré (bootstrap) : il croît avec la pression rapportée au champ poloïdal.
+  const poloidalField = (MU0 * current * 1e6) / (2 * Math.PI * a * Math.sqrt((1 + kappa ** 2) / 2));
+  const poloidalBeta = (beta / 100) * (field / poloidalField) ** 2;
+  const bootstrapFraction = Math.min(0.9, 0.6 * Math.sqrt(epsilon) * poloidalBeta);
+  // En continu, le reste du courant est entretenu par injection de puissance ;
+  // l'efficacité de cet entraînement augmente avec la température.
+  const driveEfficiency = Math.min(0.6, Math.max(0.15, 0.03 * temperature)); // 10²⁰ A/W/m²
+  const currentDrivePower =
+    operation === 'steady' ? (density * R * current * (1 - bootstrapFraction)) / driveEfficiency : 0;
+
+  const auxPower = Math.max(lossPower - alphaPower, currentDrivePower, MIN_AUX_FRACTION * fusionPower, 1);
 
   // Consommations qui dépendent de la machine.
   const mass = (id: string) => model.components.filter((c) => c.id.startsWith(id)).reduce((s, c) => s + (c.mass ?? 0), 0);
@@ -148,6 +165,7 @@ export function evaluatePlant({ params, power, design, magnet: magnetId }: Plant
   return {
     params,
     magnet,
+    operation,
     plasma: {
       fieldOnAxis: field,
       fieldAtCoil,
@@ -159,6 +177,8 @@ export function evaluatePlant({ params, power, design, magnet: magnetId }: Plant
       alphaPower,
       lossPower,
       auxPower,
+      bootstrapFraction,
+      currentDrivePower,
       gain: fusionPower / auxPower,
       confinementTime: energy / lossPower,
     },
@@ -240,7 +260,7 @@ export function optimizePlant(input: PlantOptimizationInput): PlantOptimization 
     if (!params) return null;
     evaluations++;
     try {
-      const evaluation = evaluatePlant({ params, power: input.power, design, magnet: input.magnet });
+      const evaluation = evaluatePlant({ params, power: input.power, design, magnet: input.magnet, operation: input.operation });
       return evaluation.feasible ? evaluation : null;
     } catch {
       return null; // l'empilement radial ne tient pas
@@ -310,7 +330,7 @@ export function optimizePlant(input: PlantOptimizationInput): PlantOptimization 
 
   // 3. Températures du circuit réajustées sur le réacteur retenu.
   design = optimizeCoolantDesign(found.evaluation.power, input.design.coolant, input.design.ambientTemperature);
-  const optimum = evaluatePlant({ params: found.evaluation.params, power: input.power, design, magnet: input.magnet });
+  const optimum = evaluatePlant({ params: found.evaluation.params, power: input.power, design, magnet: input.magnet, operation: input.operation });
 
   const limits: string[] = [];
   const near = (value: number, bound: number, span: number) => Math.abs(value - bound) < 0.01 * span;

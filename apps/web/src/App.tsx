@@ -312,7 +312,11 @@ export function App() {
       </aside>
 
       <main className="viewport">
-        {tab === 'transfer' && transfer && <EnergyDiagram result={transfer} />}
+        {tab === 'transfer' && transfer && (
+          <div className="diagram-wrap">
+            <EnergyDiagram result={transfer} />
+          </div>
+        )}
         {tab !== 'transfer' && model && (
           <ReactorScene
             model={model}
@@ -331,6 +335,7 @@ export function App() {
             <span>Volume plasma <b>{fmt.format(model.summary.plasmaVolume)} m³</b></span>
             <span>Masse estimée <b>{fmt.format(model.summary.totalMass)} t</b></span>
             {balance && !livePhase && <span>Électricité nette <b>{fmt.format(balance.netElectric)} MW</b></span>}
+            <span>Encombrement <b>⌀ {fmt.format(model.summary.outerRadius * 2)} × {fmt.format(model.summary.height)} m</b></span>
             {livePhase && simulation && (
               <span className="live">
                 ● {livePhase.label} · t = {formatDuration(simulation.samples.time[frameIndex])} · fusion{' '}
@@ -338,7 +343,6 @@ export function App() {
                 <b>{fmt.format(simulation.samples.netElectric[frameIndex])} MW</b>
               </span>
             )}
-            <span>Encombrement <b>⌀ {fmt.format(model.summary.outerRadius * 2)} × {fmt.format(model.summary.height)} m</b></span>
           </div>
         )}
 

@@ -58,7 +58,12 @@ export const api = {
     maxMajorRadius: number;
   }) => request<PlantOptimization>('/plant/optimize', postJson(input)),
   simulate: (
-    input: { power: PowerParams; plasmaVolume: number; scenario: ScenarioParams },
+    input: {
+      power: PowerParams;
+      plasmaVolume: number;
+      scenario: ScenarioParams;
+      nominal?: { temperature: number; density: number };
+    },
     signal?: AbortSignal,
   ) => request<SimulationResult>('/simulation', postJson(input, signal)),
 };

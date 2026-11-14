@@ -61,6 +61,8 @@ export function App() {
   const [plantResult, setPlantResult] = useState<PlantOptimization | null>(null);
   const [plantLoading, setPlantLoading] = useState(false);
   const [plantError, setPlantError] = useState<string | null>(null);
+  // Point de fonctionnement du plasma calculé par l'optimiseur, repris par la simulation.
+  const [nominalPlasma, setNominalPlasma] = useState<{ temperature: number; density: number } | undefined>();
   const [scenario, setScenario] = useState<ScenarioParams | null>(null);
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
   const [frame, setFrame] = useState(0);
@@ -193,6 +195,7 @@ export function App() {
     setParams(optimum.params);
     setPowerParams(optimum.power);
     setTransferDesign(optimum.transfer.design);
+    setNominalPlasma({ temperature: optimum.plasma.temperature, density: optimum.plasma.density });
     // La simulation suit le mode retenu ; en continu, on montre un plateau de 8 h.
     setScenario((s) =>
       s && {
@@ -223,7 +226,7 @@ export function App() {
     const { firstWallArea: _ignored, ...power } = powerParams;
     const timer = setTimeout(() => {
       api
-        .simulate({ power, plasmaVolume, scenario }, controller.signal)
+        .simulate({ power, plasmaVolume, scenario, nominal: nominalPlasma }, controller.signal)
         .then((result) => {
           setSimulation(result);
           setError(null);
@@ -236,7 +239,7 @@ export function App() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [tab, powerParams, scenario, plasmaVolume]);
+  }, [tab, powerParams, scenario, plasmaVolume, nominalPlasma]);
 
   // Lecture en boucle de la simulation.
   const sampleCount = simulation?.samples.time.length ?? 0;
@@ -314,6 +317,7 @@ export function App() {
               setScenario(p.scenario);
               setTransferDesign(p.transfer);
               setPlantOptions((o) => ({ ...o, magnet: p.magnet }));
+              setNominalPlasma(undefined);
               setFrame(0);
             }}
             onChange={(p) => {

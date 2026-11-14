@@ -27,7 +27,7 @@ test("l'épaisseur de bobine calculée donne exactement le champ maximal du cond
 });
 
 test("l'optimum respecte les contraintes et fait au moins aussi bien que le départ", () => {
-  const score: Record<Objective, (e: { plantEfficiency: number; netElectric: number; netPerTonne: number }) => number> = {
+  const score: Record<Exclude<Objective, 'lcoe'>, (e: { plantEfficiency: number; netElectric: number; netPerTonne: number }) => number> = {
     efficiency: (e) => e.plantEfficiency,
     net: (e) => e.netElectric,
     specific: (e) => e.netPerTonne,
@@ -79,4 +79,22 @@ test("mode continu : l'optimiseur trouve un réacteur admissible à bilan positi
   const optimum = o.optimum!;
   assert.ok(optimum && optimum.feasible && optimum.operation === 'steady');
   assert.ok(optimum.netElectric > 0);
+});
+
+test('coût : le total est la somme des postes et le LCOE suit sa définition', () => {
+  const { cost, netElectric } = evaluatePlant(input(1));
+  const sum = cost.breakdown.reduce((s, item) => s + item.value, 0);
+  assert.ok(Math.abs(sum - cost.capital) < 1e-6 * cost.capital);
+  assert.ok(Math.abs(cost.annualEnergy - netElectric * 8.76 * cost.capacityFactor) < 1e-9);
+  assert.ok(cost.lcoe !== null && Math.abs(cost.lcoe - (cost.annual * 1000) / cost.annualEnergy) < 1e-9);
+  // Ordre de grandeur attendu pour une centrale à fusion de première génération.
+  assert.ok(cost.capital > 3000 && cost.capital < 40000, `capital ${cost.capital}`);
+  assert.ok(cost.lcoe! > 50 && cost.lcoe! < 2000, `lcoe ${cost.lcoe}`);
+});
+
+test("coût : un bilan négatif n'a pas de LCOE, et l'objectif coût trouve moins cher que le départ", () => {
+  assert.equal(evaluatePlant(input(0)).cost.lcoe, null);
+  const o = optimizePlant({ ...input(1), objective: 'lcoe', maxMajorRadius: 10 });
+  const optimum = o.optimum!;
+  assert.ok(optimum.cost.lcoe !== null && optimum.cost.lcoe <= o.baseline!.cost.lcoe! + 1e-9);
 });

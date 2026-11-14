@@ -21,7 +21,27 @@ export interface MagnetTechnology {
 export type Operation = 'pulsed' | 'steady';
 
 /** Ce que l'optimiseur cherche à maximiser. */
-export type Objective = 'efficiency' | 'net' | 'specific';
+export type Objective = 'efficiency' | 'net' | 'specific' | 'lcoe';
+
+/** Estimation économique. Montants en millions d'euros. */
+export interface CostEstimate {
+  /** Investissement total */
+  capital: number;
+  /** Répartition de l'investissement, du plus gros poste au plus petit */
+  breakdown: { label: string; value: number }[];
+  /** Charges annuelles : capital, exploitation, remplacements */
+  annual: number;
+  /** Part des charges annuelles due au remplacement de la couverture et du divertor */
+  replacement: number;
+  /** Durée de vie de la couverture (années) */
+  blanketLifetime: number;
+  /** Part de l'année passée à produire */
+  capacityFactor: number;
+  /** Production annuelle (GWh) */
+  annualEnergy: number;
+  /** Coût actualisé de l'électricité (€/MWh) ; null si le bilan est négatif */
+  lcoe: number | null;
+}
 
 export interface PlantInput {
   params: ReactorParams;
@@ -89,6 +109,7 @@ export interface PlantEvaluation {
   plantEfficiency: number;
   /** Électricité nette par tonne de machine (kW/t) */
   netPerTonne: number;
+  cost: CostEstimate;
 }
 
 export interface PlantOptimization {

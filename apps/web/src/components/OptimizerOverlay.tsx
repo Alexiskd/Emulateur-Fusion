@@ -9,6 +9,7 @@ const OBJECTIVES: { id: Objective; label: string; hint: string }[] = [
   { id: 'efficiency', label: 'Rendement de la chaîne', hint: 'Électricité nette par MW de fusion : la meilleure conversion entrée → sortie.' },
   { id: 'net', label: 'Électricité nette', hint: 'Le plus de MW livrés au réseau, dans la taille autorisée.' },
   { id: 'specific', label: 'Électricité par tonne', hint: 'Le plus de MW par tonne de machine : un indicateur de coût.' },
+  { id: 'lcoe', label: "Coût de l'électricité", hint: 'Le prix de revient du MWh le plus bas : investissement, exploitation et remplacements rapportés à la production.' },
 ];
 
 const OPERATIONS: { id: Operation; label: string; hint: string }[] = [
@@ -68,6 +69,16 @@ const SECTIONS: { title: string; rows: Row[] }[] = [
       { label: 'Électricité nette', value: (e) => `${num.format(e.netElectric)} MW` },
       { label: 'Rendement de la chaîne', value: (e) => pct.format(e.plantEfficiency) },
       { label: 'Électricité par tonne', value: (e) => `${dec1.format(e.netPerTonne)} kW/t` },
+    ],
+  },
+  {
+    title: 'Économie (ordres de grandeur)',
+    rows: [
+      { label: 'Investissement', value: (e) => `${dec1.format(e.cost.capital / 1000)} Md€` },
+      { label: 'Charges annuelles', value: (e) => `${num.format(e.cost.annual)} M€/an` },
+      { label: 'Durée de vie de la couverture', value: (e) => `${dec1.format(Math.min(40, e.cost.blanketLifetime))} ans` },
+      { label: 'Production annuelle', value: (e) => (e.cost.annualEnergy > 0 ? `${dec1.format(e.cost.annualEnergy / 1000)} TWh` : '—') },
+      { label: "Coût de l'électricité", value: (e) => (e.cost.lcoe === null ? '—' : `${num.format(e.cost.lcoe)} €/MWh`) },
     ],
   },
 ];
@@ -193,6 +204,23 @@ export function OptimizerOverlay({ options, magnets, result, loading, error, onO
                 })}
               </tbody>
             </table>
+
+            {optimum && (
+              <>
+                <h2>Répartition de l'investissement optimisé</h2>
+                <div className="breakdown">
+                  {optimum.cost.breakdown.map((item) => (
+                    <div key={item.label} className="flow-row">
+                      <span>{item.label}</span>
+                      <span className="flow-value">{num.format(item.value)} M€</span>
+                      <span className="flow-bar">
+                        <span style={{ width: `${(item.value / optimum.cost.breakdown[0].value) * 100}%`, background: '#4f8fd9' }} />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
             <h2>Ce qui borne l'optimum</h2>
             <ul className="limits">

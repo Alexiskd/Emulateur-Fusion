@@ -17,6 +17,8 @@ export interface SimulationInput {
   /** Volume du plasma (m³), fourni par le modèle 3D */
   plasmaVolume: number;
   scenario: ScenarioParams;
+  /** Point de fonctionnement du plasma, quand il a été calculé par l'optimiseur. Sinon 12 keV et 10²⁰ m⁻³. */
+  nominal?: { temperature: number; density: number };
 }
 
 export interface SimulationPhase {

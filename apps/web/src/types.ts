@@ -232,7 +232,19 @@ export interface OptimizationResult {
 
 // Miroir de apps/api/src/plant/plant.types.ts — optimisation de la centrale complète.
 export type MagnetId = 'lts' | 'hts';
-export type Objective = 'efficiency' | 'net' | 'specific';
+export type Objective = 'efficiency' | 'net' | 'specific' | 'lcoe';
+
+/** Estimation économique, montants en millions d'euros. */
+export interface CostEstimate {
+  capital: number;
+  breakdown: { label: string; value: number }[];
+  annual: number;
+  replacement: number;
+  blanketLifetime: number;
+  capacityFactor: number;
+  annualEnergy: number;
+  lcoe: number | null;
+}
 /** pulsed : courant induit par le solénoïde · steady : courant entretenu en continu */
 export type Operation = 'pulsed' | 'steady';
 
@@ -280,6 +292,7 @@ export interface PlantEvaluation {
   netElectric: number;
   plantEfficiency: number;
   netPerTonne: number;
+  cost: CostEstimate;
 }
 
 export interface PlantOptimization {

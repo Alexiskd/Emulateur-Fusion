@@ -131,6 +131,7 @@ button.primary { width: 100%; border-color: var(--accent); font-weight: 600; }
 .gain.down { color: #ef7a8f; }
 
 button.optimize { margin-top: 10px; }
+.breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
 .segmented { display: flex; gap: 6px; margin-bottom: 8px; }
 .segmented button { flex: 1; }
 .segmented button.active { border-color: var(--accent); }

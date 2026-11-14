@@ -98,6 +98,15 @@ courant dans le chauffage. La machine type ITER retrouve ainsi le scénario stat
 ITER : environ 9 MA, plus de la moitié du courant auto-générée. Dans la simulation, le solénoïde
 reste figé pendant le plateau.
 
+### Coût de l'électricité
+
+Chaque évaluation de réacteur donne une estimation économique : investissement par poste (aimants,
+couverture, divertor, enceinte, chauffage, cryogénie, turbine, cycle du combustible, bâtiments,
+frais indirects), charges annuelles (annuité de 8 %, exploitation, remplacement de la couverture
+selon la fluence neutronique et du divertor) et production annuelle. Le coût actualisé de
+l'électricité (LCOE) en découle, et l'optimiseur peut le prendre comme objectif. Les coûts
+unitaires sont des ordres de grandeur.
+
 C'est un modèle pédagogique : formes simplifiées, pas un outil de dimensionnement.
 
 ## Références

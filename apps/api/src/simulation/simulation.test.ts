@@ -71,3 +71,11 @@ test('mode continu : le solénoïde reste figé pendant le plateau et la combust
   assert.ok(steady.summary.dutyFactor > pulsed.summary.dutyFactor);
   assert.ok(Math.abs(steady.summary.flatTopFusionPower / preset.power.fusionPower - 1) < 0.03);
 });
+
+test('point de fonctionnement fourni : la simulation plafonne à cette température', () => {
+  const preset = PRESETS[1];
+  const plasmaVolume = buildReactor(preset.params).summary.plasmaVolume;
+  const r = simulatePulse({ power: preset.power, plasmaVolume, scenario: preset.scenario, nominal: { temperature: 20, density: 0.7 } });
+  assert.ok(Math.abs(r.summary.peakTemperature / 20 - 1) < 0.15, `T ${r.summary.peakTemperature}`);
+  assert.ok(Math.abs(r.summary.flatTopFusionPower / preset.power.fusionPower - 1) < 0.03);
+});

@@ -85,7 +85,9 @@ const STEADY_PHASES: Partial<Record<SimulationPhase['id'], Pick<SimulationPhase,
   },
 };
 
-export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput): SimulationResult {
+export function simulatePulse({ power, plasmaVolume, scenario, nominal }: SimulationInput): SimulationResult {
+  const nominalTemperature = nominal?.temperature ?? NOMINAL_TEMPERATURE;
+  const nominalDensity = (nominal?.density ?? 1) * NOMINAL_DENSITY;
   const durations = [
     scenario.premagDuration,
     scenario.rampUpDuration,
@@ -118,13 +120,13 @@ export function simulatePulse({ power, plasmaVolume, scenario }: SimulationInput
 
   // Point nominal : sert à caler le temps de confinement.
   const alphaFraction = 1 - NEUTRON_FRACTION;
-  const energyPerKeV = (3 * NOMINAL_DENSITY * KEV_IN_JOULES * plasmaVolume) / 1e6; // MJ par keV à densité nominale
-  const nominalEnergy = energyPerKeV * NOMINAL_TEMPERATURE;
-  const nominalReactivity = dtReactivity(NOMINAL_TEMPERATURE);
+  const energyPerKeV = (3 * nominalDensity * KEV_IN_JOULES * plasmaVolume) / 1e6; // MJ par keV à densité nominale
+  const nominalEnergy = energyPerKeV * nominalTemperature;
+  const nominalReactivity = dtReactivity(nominalTemperature);
   const ohmicCoefficient = 0.03 * (alphaFraction * power.fusionPower + power.auxHeatingPower);
   const ohmicPower = (ip: number, temp: number) => (ohmicCoefficient * ip * ip) / Math.max(temp, 0.05) ** 1.5;
   const nominalHeating =
-    alphaFraction * power.fusionPower + power.auxHeatingPower + ohmicPower(1, NOMINAL_TEMPERATURE);
+    alphaFraction * power.fusionPower + power.auxHeatingPower + ohmicPower(1, nominalTemperature);
   const confinementTime = nominalEnergy / nominalHeating;
 
   const density = (t: number) => Math.max(plasmaCurrent(t), 0.02);

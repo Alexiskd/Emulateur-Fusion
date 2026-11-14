@@ -15,10 +15,16 @@ export class ScenarioParamsDto implements ScenarioParams {
   @IsOptional() @IsIn(['pulsed', 'steady']) mode?: 'pulsed' | 'steady';
 }
 
+export class NominalPlasmaDto {
+  @IsNumber() @Min(2) @Max(60) temperature: number;
+  @IsNumber() @Min(0.05) @Max(20) density: number;
+}
+
 export class SimulationDto implements SimulationInput {
   @ValidateNested() @Type(() => PowerParamsDto) power: PowerParamsDto;
   @IsNumber() @Min(0.1) @Max(100000) plasmaVolume: number;
   @ValidateNested() @Type(() => ScenarioParamsDto) scenario: ScenarioParamsDto;
+  @IsOptional() @ValidateNested() @Type(() => NominalPlasmaDto) nominal?: NominalPlasmaDto;
 }
 
 @Controller('simulation')

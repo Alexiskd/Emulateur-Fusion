@@ -4,6 +4,7 @@ import { buildReactor, loop, revolveSurfaceArea, revolveVolume } from '../reacto
 import type { ReactorParams } from '../reactor/reactor.types';
 import { dtReactivity } from '../simulation/simulation';
 import { computeTransfer, optimizeCoolantDesign } from '../transfer/transfer';
+import { estimateCost } from './cost';
 import type { TransferDesign } from '../transfer/transfer.types';
 import {
   Constraint,
@@ -190,6 +191,16 @@ export function evaluatePlant({ params, power, design, magnet: magnetId, operati
     netElectric,
     plantEfficiency: netElectric / fusionPower,
     netPerTonne: (netElectric * 1000) / model.summary.totalMass,
+    cost: estimateCost({
+      model,
+      magnet: magnetId,
+      operation,
+      auxPower,
+      cryoPower: derivedPower.cryoPower,
+      grossElectric: transfer.electric.gross,
+      netElectric,
+      wallLoad,
+    }),
   };
 }
 
@@ -197,6 +208,8 @@ const SCORE: Record<Objective, (e: PlantEvaluation) => number> = {
   efficiency: (e) => e.plantEfficiency,
   net: (e) => e.netElectric,
   specific: (e) => e.netPerTonne,
+  // Le moins cher gagne ; un bilan négatif n'a pas de coût défini et arrive dernier.
+  lcoe: (e) => (e.cost.lcoe === null ? -Infinity : -e.cost.lcoe),
 };
 
 /** Variables de conception explorées : taille, rapport d'aspect, couverture et blindage. */

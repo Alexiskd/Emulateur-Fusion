@@ -17,7 +17,7 @@ export class PlantDto implements PlantInput {
 }
 
 export class PlantOptimizationDto extends PlantDto implements PlantOptimizationInput {
-  @IsIn(['efficiency', 'net', 'specific']) objective: Objective;
+  @IsIn(['efficiency', 'net', 'specific', 'lcoe']) objective: Objective;
   @IsNumber() @Min(2) @Max(15) maxMajorRadius: number;
 }
 
